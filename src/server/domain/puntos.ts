@@ -6,7 +6,8 @@
  * `registros_puntos`. Cuando se edita una juntada, se borran sus registros y
  * se vuelve a llamar a esta función, así nunca quedan puntos duplicados.
  */
-import { type Accion, ErrorDeDominio, puntosVigentes } from "./acciones";
+import { type Accion, puntosVigentes } from "./acciones";
+import { ErrorDeDominio } from "./errores";
 
 export type EstadoDeParticipacion =
   | "asistio"

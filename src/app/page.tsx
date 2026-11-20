@@ -1,4 +1,8 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Suspense } from "react";
+import { Avatar } from "@/components/avatar";
+import { buttonVariants } from "@/components/ui/button";
+import { usuarioActual } from "@/server/sesion";
 
 const paleta = [
   { nombre: "Violeta", hex: "#310E3F", clase: "bg-violeta ring-1 ring-border" },
@@ -60,12 +64,40 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="flex gap-3">
-        <Button size="lg">Crear grupo</Button>
-        <Button size="lg" variant="secondary">
-          Ya tengo grupo
-        </Button>
-      </div>
+      {/* Con cacheComponents, lo que lee la sesión (cookies) va dentro de un Suspense. */}
+      <Suspense fallback={<div className="h-11" />}>
+        <EstadoDeSesion />
+      </Suspense>
     </main>
+  );
+}
+
+async function EstadoDeSesion() {
+  const usuario = await usuarioActual();
+
+  if (!usuario) {
+    return (
+      <div className="flex gap-3">
+        <Link href="/crear-cuenta" className={buttonVariants({ size: "lg" })}>
+          Crear cuenta
+        </Link>
+        <Link href="/entrar" className={buttonVariants({ size: "lg", variant: "secondary" })}>
+          Entrar
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href="/cuenta"
+      className="flex items-center gap-3 rounded-xl bg-card p-3 hover:bg-muted"
+    >
+      <Avatar emoji={usuario.avatarEmoji} color={usuario.avatarColor} />
+      <div className="min-w-0">
+        <p className="font-heading truncate font-semibold">Hola, {usuario.nombre}</p>
+        <p className="text-sm text-muted-foreground">Ver mi cuenta</p>
+      </div>
+    </Link>
   );
 }

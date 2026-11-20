@@ -14,12 +14,12 @@ Registro de lo decidido hasta ahora. Actualizar cuando algo cambie.
 | Migraciones | Archivos `.sql` en `db/migrations/`, aplicados con `dbmate` |
 | API | Route Handlers de Next en `src/app/api/v1/...` (sin Hono) |
 | Validación | Zod |
-| Autenticación | Better Auth (conexión directa a Postgres, sin ORM) — Google + enlace mágico por email (Resend) |
+| Autenticación | Propia: usuario + PIN, sin email (scrypt y tokens con `node:crypto`, sesiones en Postgres) |
 | Tests | Vitest (prioridad: motor de puntos y estadísticas) |
 | Hosting | Vercel + Neon |
 | PWA | `src/app/manifest.ts`; service worker más adelante si hace falta |
 
-**Descartados a propósito:** Drizzle/Prisma (preferencia por SQL explícito) y Hono (no aporta lo suficiente para el MVP). Se mantiene TypeScript simple: tipos de datos + Zod, sin genéricos complejos.
+**Descartados a propósito:** Drizzle/Prisma (preferencia por SQL explícito), Hono (no aporta lo suficiente para el MVP) y Better Auth (para usuario + PIN no hacía falta, y sumaba otra librería de conexión a Postgres). Se mantiene TypeScript simple: tipos de datos + Zod, sin genéricos complejos.
 
 ## Arquitectura
 
@@ -78,11 +78,20 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 | Faltó por estar con la pareja | -3 |
 | Llegar muy tarde | -2 |
 
+## Cuentas (confirmado)
+
+- **Sin email ni verificación**: la cuenta es un nombre de usuario único (sin distinguir mayúsculas) + un PIN de al menos 6 caracteres. Con eso se entra desde cualquier dispositivo.
+- **Perfil fijo**: nombre o apodo, emoji y color de avatar. No se pueden cambiar; solo eliminar la cuenta y crear otra. El nombre es el mismo en todos los grupos. Sin edad.
+- **Foto de perfil**: más adelante. Se guardaría achicada (~20 KB) directo en Postgres, sin servicio de imágenes pago.
+- **Seguridad**: el PIN se guarda con scrypt; la sesión es un token aleatorio en una cookie httpOnly y en la base solo se guarda su hash. Tras 5 PIN incorrectos la cuenta se bloquea 15 minutos. La API también acepta `Authorization: Bearer <token>` para la futura app móvil.
+- **Eliminar la cuenta**: pide el PIN. En los grupos el perfil queda como integrante sin cuenta, con su historial y sus puntos.
+- Código: `src/server/domain/cuentas.ts` (reglas), `src/server/auth/credenciales.ts` (PIN y tokens), `src/server/services/cuentas.ts`, `src/server/sesion.ts`, API en `src/app/api/v1/cuentas` y `src/app/api/v1/sesiones`.
+
 ## Plan de desarrollo por etapas
 
 1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
-2. **Login** con Better Auth (Google + enlace mágico con Resend).
-3. **Grupos e integrantes**: crear grupo, invitar por link (vence a los 7 días), roles.
+2. **Cuentas** — hecho: usuario + PIN sin email, sesiones, crear cuenta, entrar, salir y eliminar cuenta.
+3. **Grupos e integrantes**: crear grupo, código para unirse, solicitudes que acepta un administrador, roles.
 4. **Juntadas y acciones sueltas**: registrar y editar, con recálculo de puntos e historial.
 5. **Tabla de la liga**: posiciones, desglose y cambios de posición.
 6. **Acciones configurables**: editar puntos y agregar o archivar acciones.
@@ -100,7 +109,8 @@ Pendientes de validar con el grupo real:
 Confirmadas:
 
 - **Administradores**: el que crea el grupo es administrador y puede nombrar a otros.
-- **Invitaciones**: link para compartir (por ejemplo, por WhatsApp), vence a los 7 días.
+- **Ingreso a grupos**: cada grupo tiene un código corto que el administrador comparte y puede regenerar. Quien lo usa queda como solicitud pendiente hasta que un administrador la acepta (para evitar infiltrados). Al aceptar se puede vincular a un perfil sin cuenta ya existente.
+- **Nombre del grupo**: lo pueden cambiar los administradores.
 - **Juntada cancelada**: se borra o se marca cancelada y no suma puntos.
 - **Invitados externos**: texto libre en la juntada, sin puntos.
 - **Base de datos**: por ahora se desarrolla sobre la base de Neon del `.env`. Antes de que entre el grupo real, crear una base (o branch) separada para producción.

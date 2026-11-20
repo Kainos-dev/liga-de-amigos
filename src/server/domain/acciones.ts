@@ -9,6 +9,7 @@
  * Las fechas se manejan como texto "AAAA-MM-DD": se comparan bien como strings
  * y evitan problemas de zona horaria.
  */
+import { ErrorDeDominio } from "./errores";
 
 /** Acciones que el sistema aplica solo, según el estado de asistencia. */
 export type ClaveSistema = "asistir" | "faltar";
@@ -24,9 +25,6 @@ export type Accion = {
   nombre: string;
   historialDePuntos: ValorDePuntos[];
 };
-
-/** Error de una regla del negocio. Los services lo traducen a un 400 con este mensaje. */
-export class ErrorDeDominio extends Error {}
 
 /** Lista que se copia a cada grupo nuevo. Después el grupo la edita como quiera. */
 export const ACCIONES_POR_DEFECTO: {

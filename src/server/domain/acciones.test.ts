@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ACCIONES_POR_DEFECTO, ErrorDeDominio, puntosVigentes } from "./acciones";
+import { ACCIONES_POR_DEFECTO, puntosVigentes } from "./acciones";
+import { ErrorDeDominio } from "./errores";
 
 describe("puntosVigentes", () => {
   const historial = [

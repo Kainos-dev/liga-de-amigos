@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { type Accion, ErrorDeDominio } from "./acciones";
+import type { Accion } from "./acciones";
+import { ErrorDeDominio } from "./errores";
 import {
   calcularPuntosDeAccionSuelta,
   calcularPuntosDeJuntada,
