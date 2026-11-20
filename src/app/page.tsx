@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
+import { hoy } from "@/server/domain/fechas";
+import { anioDeTemporada } from "@/server/domain/temporadas";
 import { Avatar } from "@/components/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { misGrupos } from "@/server/services/grupos";
@@ -11,7 +14,10 @@ export default function Home() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 py-12">
       <div className="space-y-3">
         <p className="text-sm font-medium uppercase tracking-widest text-amarillo">
-          Temporada 2026
+          Temporada{" "}
+          <Suspense fallback={null}>
+            <AnioActual />
+          </Suspense>
         </p>
         {/* Bangers es angosta: aguanta tamaños muy grandes sin desbordar en celular. */}
         <h1 className="font-display text-7xl leading-[0.9] tracking-wide sm:text-8xl">
@@ -30,6 +36,15 @@ export default function Home() {
       </Suspense>
     </main>
   );
+}
+
+/**
+ * El año se calcula en cada visita (con la hora de Argentina). Sin connection(),
+ * Next lo calcularía una sola vez al publicar y quedaría fijo en ese año.
+ */
+async function AnioActual() {
+  await connection();
+  return <>{anioDeTemporada(hoy())}</>;
 }
 
 async function ContenidoSegunSesion() {
