@@ -37,6 +37,6 @@ pnpm db:status
 
 ## Estado actual
 
-Etapas 1 y 2 listas: motor de puntos en `src/server/domain/` (con tests), esquema en `db/migrations/` (aplicado en Neon) y cuentas propias con usuario + PIN (sin email). Plan completo por etapas en `docs/decisiones.md`.
+Etapas 1 a 3 listas: motor de puntos en `src/server/domain/` (con tests), esquema en `db/migrations/` (aplicado en Neon), cuentas propias con usuario + PIN (sin email) y grupos con código y solicitudes. Plan completo por etapas en `docs/decisiones.md`.
 
-Próximo paso: etapa 3, grupos (código para unirse y solicitudes que acepta un administrador).
+Próximo paso: etapa 4, juntadas y acciones sueltas (registro, edición y recálculo de puntos).

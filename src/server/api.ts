@@ -42,6 +42,18 @@ export function manejar<Contexto>(
   };
 }
 
+export function esIdValido(valor: string): boolean {
+  return z.uuid().safeParse(valor).success;
+}
+
+/** Valida que un id de la URL tenga formato de uuid (si no, Postgres daría un 500). */
+export function validarId(valor: string): string {
+  if (!esIdValido(valor)) {
+    throw new ErrorDeDominio("El identificador de la dirección no es válido");
+  }
+  return valor;
+}
+
 /**
  * Lee el cuerpo JSON y lo valida con un esquema de Zod.
  *

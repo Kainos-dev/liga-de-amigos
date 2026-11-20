@@ -87,11 +87,22 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 - **Eliminar la cuenta**: pide el PIN. En los grupos el perfil queda como integrante sin cuenta, con su historial y sus puntos.
 - Código: `src/server/domain/cuentas.ts` (reglas), `src/server/auth/credenciales.ts` (PIN y tokens), `src/server/services/cuentas.ts`, `src/server/sesion.ts`, API en `src/app/api/v1/cuentas` y `src/app/api/v1/sesiones`.
 
+## Grupos (confirmado)
+
+- **Crear un grupo** deja a quien lo crea como administrador y carga la temporada del año y la lista de acciones por defecto.
+- **Código para unirse**: 6 caracteres sin letras ni números que se confundan (sin 0/O, 1/I/L, 5/S). Lo ven todos los integrantes, para que cualquiera lo pueda pasar; solo un administrador lo regenera.
+- **Solicitudes**: con el código se pide entrar y queda pendiente hasta que un administrador acepta o rechaza. Una sola pendiente por persona y grupo. Si la rechazan, puede volver a pedir.
+- **Vincular al aceptar**: el administrador puede elegir un perfil sin cuenta ya cargado ("Juli"); la persona se queda con ese historial y el perfil toma el nombre de su cuenta. Si alguien se fue y vuelve, se reincorpora con su perfil anterior.
+- **Roles**: un administrador puede nombrar o quitar administradores. Un perfil sin cuenta no puede ser administrador. El grupo nunca se queda sin administradores (tampoco al eliminar la cuenta).
+- **Salir o sacar a alguien** no borra nada: se marca la fecha de egreso y su historial queda.
+- **Fechas**: "hoy" se calcula con la hora de Argentina (`src/server/domain/fechas.ts`), porque el servidor corre en UTC.
+- Código: `src/server/domain/grupos.ts`, `src/server/services/{grupos,solicitudes,integrantes,permisos,auditoria}.ts`, API en `src/app/api/v1/grupos` y `src/app/api/v1/solicitudes`.
+
 ## Plan de desarrollo por etapas
 
 1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
 2. **Cuentas** — hecho: usuario + PIN sin email, sesiones, crear cuenta, entrar, salir y eliminar cuenta.
-3. **Grupos e integrantes**: crear grupo, código para unirse, solicitudes que acepta un administrador, roles.
+3. **Grupos e integrantes** — hecho: crear grupo, código para unirse, solicitudes que acepta un administrador, roles e integrantes sin cuenta.
 4. **Juntadas y acciones sueltas**: registrar y editar, con recálculo de puntos e historial.
 5. **Tabla de la liga**: posiciones, desglose y cambios de posición.
 6. **Acciones configurables**: editar puntos y agregar o archivar acciones.

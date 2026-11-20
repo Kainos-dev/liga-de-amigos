@@ -121,7 +121,31 @@ export async function eliminarCuenta(usuarioId: string, pin: string): Promise<vo
   if (!(await verificarPin(pin, fila.pinHash))) {
     throw new ErrorDeDominio("El PIN no es correcto");
   }
-  await sql`DELETE FROM usuarios WHERE id = ${usuarioId}`;
+
+  // Un grupo no puede quedarse sin administradores.
+  const gruposSinOtroAdmin = await sql<{ nombre: string }[]>`
+    SELECT g.nombre
+    FROM integrantes i
+    JOIN grupos g ON g.id = i.grupo_id
+    WHERE i.usuario_id = ${usuarioId} AND i.rol = 'admin' AND i.egreso_en IS NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM integrantes otro
+        WHERE otro.grupo_id = i.grupo_id AND otro.rol = 'admin'
+          AND otro.egreso_en IS NULL AND otro.id <> i.id
+      )
+  `;
+  if (gruposSinOtroAdmin.length > 0) {
+    const nombres = gruposSinOtroAdmin.map((g) => g.nombre).join(", ");
+    throw new ErrorDeDominio(
+      `Sos el único administrador de: ${nombres}. Nombrá a otro antes de eliminar tu cuenta`,
+    );
+  }
+
+  await sql.begin(async (tx) => {
+    // Su perfil queda en los grupos sin cuenta, y un perfil sin cuenta no es admin.
+    await tx`UPDATE integrantes SET rol = 'miembro' WHERE usuario_id = ${usuarioId}`;
+    await tx`DELETE FROM usuarios WHERE id = ${usuarioId}`;
+  });
 }
 
 async function abrirSesion(usuario: Usuario): Promise<SesionNueva> {
