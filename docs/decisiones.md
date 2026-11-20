@@ -120,6 +120,17 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 - **Temporadas pasadas**: se eligen con `?anio=`.
 - Las juntadas canceladas no cuentan ni en puntos ni en asistencia.
 
+## Configuración de acciones (confirmado)
+
+- **Pantalla "Reglas y puntos"** (`/grupos/[id]/reglas`): todos la ven; solo los administradores cambian algo.
+- **Cambiar puntos**: el valor nuevo rige desde hoy (se agrega un valor "vigente desde hoy"; si se cambia dos veces el mismo día, se pisa). Lo cargado con fecha anterior conserva su valor, aunque se edite. Lo cargado con fecha de hoy pasa al valor nuevo.
+- **Rango**: de -50 a +50, enteros.
+- **Renombrar**: el nombre nuevo se ve también en los puntos ya cargados.
+- **Crear acciones propias** del grupo, con puntos positivos o negativos.
+- **Archivar**: la acción no se puede usar en cargas nuevas, pero sus puntos siguen contando y se mantiene en las juntadas que ya la tenían. Se puede reactivar si su nombre no choca con otra activa.
+- **Asistir y Faltar** no se archivan; si el grupo no quiere que sumen o resten, se les pone 0.
+- Código: `src/server/domain/configuracion-acciones.ts` (separado de `acciones.ts`, que también se usa en el navegador), `src/server/services/configuracion-acciones.ts`, API `GET/POST /api/v1/grupos/[grupoId]/acciones` (`?todas=1` incluye archivadas) y `PATCH .../acciones/[accionId]`.
+
 ## Plan de desarrollo por etapas
 
 1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
@@ -127,7 +138,7 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 3. **Grupos e integrantes** — hecho: crear grupo, código para unirse, solicitudes que acepta un administrador, roles e integrantes sin cuenta.
 4. **Juntadas y acciones sueltas** — hecho: registrar, editar, cancelar y eliminar juntadas con recálculo de puntos; puntos sueltos.
 5. **Tabla de la liga** — hecho: posiciones, desglose, asistencia y cambios de posición; adelanto en el inicio del grupo.
-6. **Acciones configurables**: editar puntos y agregar o archivar acciones.
+6. **Acciones configurables** — hecho: editar puntos (rigen desde hoy), renombrar, crear y archivar acciones.
 7. **Resúmenes y temporadas**: resumen mensual y anual, cierre de temporada.
 
 ## Propuestas para las preguntas pendientes (MVP)

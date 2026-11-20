@@ -137,6 +137,19 @@ async function ContenidoDelGrupo({ params }: { params: Promise<{ grupoId: string
         </span>
         <span aria-hidden>→</span>
       </Link>
+
+      <Link
+        href={`${base}/reglas`}
+        className="flex items-center justify-between rounded-xl border border-border p-4 hover:bg-muted"
+      >
+        <span>
+          <span className="font-heading font-semibold">Reglas y puntos</span>
+          <span className="block text-sm text-muted-foreground">
+            {esAdmin ? "Qué suma, qué resta y cuánto" : "Qué suma y qué resta en este grupo"}
+          </span>
+        </span>
+        <span aria-hidden>→</span>
+      </Link>
     </div>
   );
 }

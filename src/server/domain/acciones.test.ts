@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { ACCIONES_POR_DEFECTO, puntosVigentes } from "./acciones";
+import {
+  esquemaCrearAccion,
+  esquemaEditarAccion,
+  validarArchivado,
+} from "./configuracion-acciones";
 import { ErrorDeDominio } from "./errores";
 
 describe("puntosVigentes", () => {
@@ -44,5 +49,29 @@ describe("ACCIONES_POR_DEFECTO", () => {
   it("no repite nombres", () => {
     const nombres = ACCIONES_POR_DEFECTO.map((a) => a.nombre.toLowerCase());
     expect(new Set(nombres).size).toBe(nombres.length);
+  });
+});
+
+describe("configuración de acciones", () => {
+  it("acepta puntos negativos, cero y positivos dentro del rango", () => {
+    for (const puntos of [-50, -3, 0, 7, 50]) {
+      expect(esquemaCrearAccion.safeParse({ nombre: "No bailó", puntos }).success).toBe(true);
+    }
+  });
+
+  it("rechaza puntos fuera de rango o con decimales", () => {
+    expect(esquemaCrearAccion.safeParse({ nombre: "X", puntos: 51 }).success).toBe(false);
+    expect(esquemaCrearAccion.safeParse({ nombre: "X", puntos: -51 }).success).toBe(false);
+    expect(esquemaCrearAccion.safeParse({ nombre: "X", puntos: 1.5 }).success).toBe(false);
+  });
+
+  it("editar pide al menos un cambio", () => {
+    expect(esquemaEditarAccion.safeParse({}).success).toBe(false);
+    expect(esquemaEditarAccion.safeParse({ puntos: 7 }).success).toBe(true);
+  });
+
+  it("no se archivan las acciones del sistema", () => {
+    expect(() => validarArchivado("asistir")).toThrow(ErrorDeDominio);
+    expect(() => validarArchivado(null)).not.toThrow();
   });
 });
