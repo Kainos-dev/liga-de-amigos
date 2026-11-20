@@ -23,6 +23,8 @@ export type ResumenDeJuntada = {
   titulo: string | null;
   cancelada: boolean;
   asistentes: number;
+  gente: { nombre: string; fotoUrl: string | null }[]; // quiénes fueron
+  figura: { nombre: string; puntos: number } | null; // quien más sumó (sin empate)
 };
 
 export type PersonaEnJuntada = {
@@ -218,7 +220,7 @@ export async function listarJuntadas(
   limite = 50,
 ): Promise<ResumenDeJuntada[]> {
   await exigirIntegrante(usuarioId, grupoId);
-  return sql<ResumenDeJuntada[]>`
+  const juntadas = await sql<Omit<ResumenDeJuntada, "gente" | "figura">[]>`
     SELECT j.id, j.fecha::text AS fecha, j.titulo,
            j.cancelada_en IS NOT NULL AS cancelada,
            (SELECT count(*)::int FROM participaciones p
@@ -228,6 +230,41 @@ export async function listarJuntadas(
     ORDER BY j.fecha DESC, j.creado_en DESC
     LIMIT ${limite}
   `;
+  if (juntadas.length === 0) return [];
+  const ids = juntadas.map((j) => j.id);
+
+  // Quiénes fueron (para los avatares) y los puntos de cada uno en cada juntada.
+  const [asistentes, puntos] = await Promise.all([
+    sql<{ juntadaId: string; nombre: string; fotoUrl: string | null }[]>`
+      SELECT p.juntada_id AS "juntadaId", i.nombre, ${urlDeFoto("u")} AS "fotoUrl"
+      FROM participaciones p
+      JOIN integrantes i ON i.id = p.integrante_id
+      LEFT JOIN usuarios u ON u.id = i.usuario_id
+      WHERE p.juntada_id IN ${sql(ids)} AND p.estado = 'asistio'
+      ORDER BY lower(i.nombre)
+    `,
+    sql<{ juntadaId: string; nombre: string; puntos: number }[]>`
+      SELECT r.juntada_id AS "juntadaId", i.nombre, sum(r.puntos)::int AS puntos
+      FROM registros_puntos r
+      JOIN integrantes i ON i.id = r.integrante_id
+      WHERE r.juntada_id IN ${sql(ids)}
+      GROUP BY r.juntada_id, i.nombre
+    `,
+  ]);
+
+  return juntadas.map((juntada) => {
+    const suyos = puntos.filter((p) => p.juntadaId === juntada.id);
+    const maximo = Math.max(0, ...suyos.map((p) => p.puntos));
+    const mejores = suyos.filter((p) => p.puntos === maximo && maximo > 0);
+    return {
+      ...juntada,
+      gente: asistentes
+        .filter((a) => a.juntadaId === juntada.id)
+        .map(({ nombre, fotoUrl }) => ({ nombre, fotoUrl })),
+      // La figura solo si hay una sola persona arriba: con empate no se elige a nadie.
+      figura: mejores.length === 1 ? { nombre: mejores[0].nombre, puntos: maximo } : null,
+    };
+  });
 }
 
 export async function obtenerJuntada(

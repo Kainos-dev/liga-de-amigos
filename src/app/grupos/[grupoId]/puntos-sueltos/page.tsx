@@ -4,7 +4,7 @@ import { conSigno, fechaCorta } from "@/lib/fechas";
 import { hoy } from "@/server/domain/fechas";
 import { listarAccionesSueltas } from "@/server/services/acciones-sueltas";
 import { accionesParaFormulario } from "@/server/services/acciones";
-import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, SinAcceso, Volver } from "../acceso";
 import { BorrarAccionSuelta, FormularioAccionSuelta } from "./controles";
 
 export const metadata: Metadata = { title: "Puntos sueltos · Liga de Amigos" };
@@ -14,7 +14,7 @@ export default function PaginaPuntosSueltos({
 }: PageProps<"/grupos/[grupoId]/puntos-sueltos">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} />
       </Suspense>
     </main>

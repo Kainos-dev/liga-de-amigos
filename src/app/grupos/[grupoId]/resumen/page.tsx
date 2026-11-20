@@ -6,7 +6,7 @@ import { conSigno, fechaCorta } from "@/lib/fechas";
 import { ErrorDeDominio } from "@/server/domain/errores";
 import { nombreDeMes } from "@/server/domain/resumenes";
 import { obtenerResumenMensual, type VistaMensual } from "@/server/services/resumenes";
-import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, SinAcceso, Volver } from "../acceso";
 import { DatoGrande, plural, TarjetaDestacado } from "./destacados";
 
 export const metadata: Metadata = { title: "Resumen del mes · Liga de Amigos" };
@@ -17,7 +17,7 @@ export default function PaginaResumenMensual({
 }: PageProps<"/grupos/[grupoId]/resumen">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando resumen…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} searchParams={searchParams} />
       </Suspense>
     </main>

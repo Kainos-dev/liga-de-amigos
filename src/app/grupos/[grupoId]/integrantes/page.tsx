@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Avatar } from "@/components/avatar";
 import { listarSolicitudes } from "@/server/services/solicitudes";
-import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, SinAcceso, Volver } from "../acceso";
 import {
   AccionesDeIntegrante,
   AgregarSinCuenta,
@@ -14,7 +14,7 @@ export default function PaginaIntegrantes({ params }: PageProps<"/grupos/[grupoI
   return (
     <main className={CLASE_PAGINA}>
       {/* params y la sesión son datos de cada petición: van dentro de un Suspense. */}
-      <Suspense fallback={<p className="text-muted-foreground">Cargando…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} />
       </Suspense>
     </main>

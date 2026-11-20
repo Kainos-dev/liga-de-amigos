@@ -5,7 +5,7 @@ import {
   type AccionConfigurable,
   listarAccionesConfigurables,
 } from "@/server/services/configuracion-acciones";
-import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, SinAcceso, Volver } from "../acceso";
 import { EditarAccion, NuevaAccion } from "./controles";
 
 export const metadata: Metadata = { title: "Reglas y puntos · Liga de Amigos" };
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Reglas y puntos · Liga de Amigos" }
 export default function PaginaReglas({ params }: PageProps<"/grupos/[grupoId]/reglas">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} />
       </Suspense>
     </main>

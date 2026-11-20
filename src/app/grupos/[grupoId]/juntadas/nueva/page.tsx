@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { hoy } from "@/server/domain/fechas";
 import { datosParaFormulario } from "@/server/services/juntadas";
-import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, SinAcceso, Volver } from "../../acceso";
 import { FormularioJuntada } from "../formulario-juntada";
 
 export const metadata: Metadata = { title: "Registrar juntada · Liga de Amigos" };
@@ -12,7 +12,7 @@ export default function PaginaNuevaJuntada({
 }: PageProps<"/grupos/[grupoId]/juntadas/nueva">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} />
       </Suspense>
     </main>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Bangers } from "next/font/google";
+import { Fondo } from "@/components/fondo";
 import "./globals.css";
 
 // next/font descarga las fuentes en el build y las sirve desde el propio sitio
@@ -30,6 +31,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#310e3f",
+  // Deja usar el área de la "isla" y la barra de gestos del celular: la barra
+  // inferior del grupo se corre con env(safe-area-inset-bottom).
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -38,7 +42,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`dark ${bangers.variable} ${outfit.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="isolate flex min-h-full flex-col">
+        <Fondo />
+        {children}
+      </body>
     </html>
   );
 }

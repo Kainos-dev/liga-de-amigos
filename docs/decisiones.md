@@ -8,7 +8,7 @@ Registro de lo decidido hasta ahora. Actualizar cuando algo cambie.
 |---|---|
 | Framework | Next.js 16 (App Router) + TypeScript |
 | Gestor de paquetes | pnpm |
-| UI | Tailwind CSS v4 + shadcn/ui (estilo base-nova) + lucide-react |
+| UI | Tailwind CSS v4 + shadcn/ui (estilo base-nova) + lucide-react + Motion (animaciones con gestos) |
 | Base de datos | Postgres en Neon |
 | Acceso a datos | **SQL directo** con la librería `postgres` (sin ORM) |
 | Migraciones | Archivos `.sql` en `db/migrations/`, aplicados con `dbmate` |
@@ -184,3 +184,17 @@ Tema único oscuro sobre violeta, definido en `src/app/globals.css`. Texto crema
 | Inter | `font-sans` (por defecto) | Descripciones, navegación, formularios y datos |
 
 Se cargan con `next/font/google` en `src/app/layout.tsx` (sin dependencias extra).
+
+## Dirección visual: "la liga del barrio" (confirmado)
+
+Mezcla de álbum de figuritas, gráficos de transmisión deportiva y un toque de historieta. Maqueta de referencia: artifact "Liga de Amigos · Maqueta visual".
+
+- **Fondo** (`src/components/fondo.tsx`): violeta con dos resplandores difusos (naranja y amarillo) que se mueven despacio y grano fino. Fijo detrás de todo.
+- **Utilidades en `globals.css`**: `titulo-sticker` (Bangers con sombra sólida doble), `trama-amarilla` / `trama-oscura` / `trama-naranja` (puntos de historieta), `relieve` (borde y sombra de tarjeta), `presionable` (se hunde al tocar), `ticket` (muescas de entrada), `aparece` + `animation-delay` para entradas en cascada, `confeti`.
+- **Barra inferior** dentro de cada grupo: Inicio · Tabla · [+ Registrar] · Resúmenes · Grupo. Se oculta en los formularios de juntada y en la historia del año.
+- **Inicio del grupo**: tarjeta "Tu posición" (puesto gigante, puntos, cambio y distancia al primero) y juntadas como entradas (fecha grande, troquelado, avatares de quienes fueron, figura de la juntada si no hubo empate).
+- **Tabla**: podio de los 3 primeros (bloques que crecen, corona), puntos que suben como contador y "figurita" al tocar a alguien.
+- **Historia del año** (`/grupos/[id]/resumen-anual/historia`): pantallas a pantalla completa estilo "Wrapped", con Motion (deslizar, tocar, mantener para pausar). Solo incluye pantallas con datos reales. Se puede compartir el resultado.
+- **Confeti** al registrar una juntada.
+- **Movimiento con criterio**: todo se apaga si el sistema pide "reducir movimiento".
+- **Motion** se usa solo donde hay gestos o transiciones entre pantallas (historia, figurita, contador). El resto es CSS.

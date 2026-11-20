@@ -120,3 +120,110 @@
     @apply font-sans;
   }
 }
+
+/*
+ * ─── Diseño "liga del barrio": movimiento, textura y relieve ───
+ * Animaciones de entrada, resplandores, tramas tipo historieta y botones que
+ * se hunden. Todo con los tokens de la paleta. Si el celular pide "reducir
+ * movimiento", se apagan (ver el final del archivo).
+ */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes flotar {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(28px, -22px) scale(1.08); }
+}
+@keyframes latir {
+  0%, 100% { box-shadow: 0 10px 24px -8px rgb(255 91 66 / 70%), 0 0 0 0 rgb(255 91 66 / 50%); }
+  50% { box-shadow: 0 10px 24px -8px rgb(255 91 66 / 70%), 0 0 0 12px rgb(255 91 66 / 0%); }
+}
+@keyframes crecer-desde-abajo {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes caer-en-su-lugar {
+  0% { opacity: 0; transform: translateY(-28px) scale(0.6); }
+  70% { opacity: 1; transform: translateY(4px) scale(1.04); }
+  100% { transform: none; }
+}
+@keyframes rebotar {
+  0% { opacity: 0; transform: translateY(6px); }
+  60% { opacity: 1; transform: translateY(-3px); }
+  100% { transform: none; }
+}
+@keyframes llenar {
+  from { width: 0; }
+}
+@keyframes llover {
+  0% { opacity: 1; transform: translateY(-40px) rotate(0); }
+  100% { opacity: 0.9; transform: translateY(105vh) rotate(540deg); }
+}
+
+@layer components {
+  /* Entrada en cascada: cada elemento puede tener su animation-delay. */
+  .aparece { animation: aparecer 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .cae-en-su-lugar { animation: caer-en-su-lugar 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .crece-desde-abajo { transform-origin: bottom; animation: crecer-desde-abajo 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+  .rebota { animation: rebotar 0.5s 0.9s ease-out both; }
+  .se-llena { animation: llenar 1.2s 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .late { animation: latir 2.6s ease-in-out infinite; }
+
+  /* Títulos tipo calcomanía: sombra sólida corrida, en dos capas. */
+  .titulo-sticker {
+    text-shadow: 3px 3px 0 var(--violeta-oscuro), 6px 6px 0 var(--naranja);
+  }
+
+  /* Trama de puntos de historieta (se usa como capa decorativa). */
+  .trama-amarilla {
+    background-image: radial-gradient(color-mix(in oklab, var(--amarillo) 45%, transparent) 1.3px, transparent 1.6px);
+    background-size: 9px 9px;
+  }
+  .trama-oscura {
+    background-image: radial-gradient(color-mix(in oklab, var(--violeta-oscuro) 25%, transparent) 1.3px, transparent 1.6px);
+    background-size: 8px 8px;
+  }
+  .trama-naranja {
+    background-image: radial-gradient(color-mix(in oklab, var(--naranja) 40%, transparent) 1.4px, transparent 1.7px);
+    background-size: 10px 10px;
+  }
+
+  /* Tarjeta con relieve: brillo fino arriba y sombra suave. */
+  .relieve {
+    border: 1px solid rgb(255 246 236 / 8%);
+    box-shadow: inset 0 1px 0 rgb(255 246 236 / 12%), 0 20px 40px -26px rgb(0 0 0 / 75%);
+  }
+
+  /* Se hunde un poco al tocarlo. */
+  .presionable { transition: transform 0.15s ease, background-color 0.15s ease; }
+  .presionable:active { transform: scale(0.97); }
+
+  /* Entrada de juntada: muescas arriba y abajo, a la altura del troquelado. */
+  .ticket { position: relative; }
+  .ticket::before,
+  .ticket::after {
+    content: "";
+    position: absolute;
+    left: 70px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: var(--background);
+  }
+  .ticket::before { top: -9px; }
+  .ticket::after { bottom: -9px; }
+
+  .confeti { animation: llover linear 1 both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+}

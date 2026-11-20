@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { Play } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { conSigno } from "@/lib/fechas";
 import { ErrorDeDominio } from "@/server/domain/errores";
 import { obtenerResumenAnual, type VistaAnual } from "@/server/services/resumenes";
-import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, SinAcceso, Volver } from "../acceso";
 import { DatoGrande, listaDeNombres, plural, TarjetaDestacado } from "../resumen/destacados";
 import { CerrarTemporada } from "./cerrar-temporada";
 import { GraficoPorMes } from "./grafico-por-mes";
@@ -27,7 +28,7 @@ export default function PaginaResumenAnual({
 }: PageProps<"/grupos/[grupoId]/resumen-anual">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando resumen…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} searchParams={searchParams} />
       </Suspense>
     </main>
@@ -95,6 +96,20 @@ async function Contenido({
         </p>
       ) : (
         <>
+          <Link
+            href={`${base}/resumen-anual/historia?anio=${resumen.anio}`}
+            className="aparece presionable relative flex items-center gap-4 overflow-hidden rounded-3xl bg-naranja p-5 text-violeta-oscuro"
+          >
+            <span aria-hidden className="trama-oscura absolute inset-0 [mask-image:linear-gradient(100deg,transparent_35%,#000)]" />
+            <span className="relative flex-1">
+              <span className="block font-display text-3xl leading-none tracking-wide">Ver la historia del año</span>
+              <span className="mt-1.5 block text-sm font-medium">Pantalla a pantalla, para mirar y compartir</span>
+            </span>
+            <span className="relative flex size-12 items-center justify-center rounded-full bg-violeta-oscuro text-naranja">
+              <Play aria-hidden className="size-5 fill-current" />
+            </span>
+          </Link>
+
           {resumen.campeon && (
             <div className="space-y-1 rounded-xl bg-amarillo p-5 text-violeta-oscuro">
               <p className="text-sm font-medium">

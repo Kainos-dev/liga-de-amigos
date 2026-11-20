@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Avatar } from "@/components/avatar";
+import { Confeti } from "@/components/confeti";
 import { buttonVariants } from "@/components/ui/button";
 import { conSigno, fechaLarga } from "@/lib/fechas";
 import { esIdValido } from "@/server/api";
 import type { EstadoDeParticipacion } from "@/server/domain/puntos";
 import { obtenerJuntada } from "@/server/services/juntadas";
-import { accederAlGrupo, CLASE_PAGINA, oNulo, SinAcceso, Volver } from "../../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, oNulo, SinAcceso, Volver } from "../../acceso";
 import { ControlesDeJuntada } from "./controles";
 
 const TEXTO_DE_ESTADO: Record<EstadoDeParticipacion, string> = {
@@ -18,11 +19,12 @@ const TEXTO_DE_ESTADO: Record<EstadoDeParticipacion, string> = {
 
 export default function PaginaJuntada({
   params,
+  searchParams,
 }: PageProps<"/grupos/[grupoId]/juntadas/[juntadaId]">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando juntada…</p>}>
-        <Contenido params={params} />
+      <Suspense fallback={<Esqueleto />}>
+        <Contenido params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
@@ -30,10 +32,13 @@ export default function PaginaJuntada({
 
 async function Contenido({
   params,
+  searchParams,
 }: {
   params: Promise<{ grupoId: string; juntadaId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { grupoId, juntadaId } = await params;
+  const recienCreada = (await searchParams).nueva === "1";
   const acceso = await accederAlGrupo(grupoId);
   if (!acceso) return <SinAcceso />;
   const { usuario, grupo } = acceso;
@@ -45,13 +50,20 @@ async function Contenido({
 
   return (
     <div className="space-y-8">
+      {recienCreada && <Confeti fijo />}
       <Volver href={`/grupos/${grupo.id}`} texto={grupo.nombre} />
 
-      <div className="space-y-2">
+      {recienCreada && (
+        <p role="status" className="aparece rounded-2xl bg-amarillo px-4 py-3 font-semibold text-violeta-oscuro">
+          ¡Juntada registrada! Ya suma en la tabla.
+        </p>
+      )}
+
+      <div className="aparece space-y-2">
         <p className="text-sm font-medium text-amarillo first-letter:uppercase">
           {fechaLarga(juntada.fecha)}
         </p>
-        <h1 className="font-display text-5xl leading-none tracking-wide break-words">
+        <h1 className="titulo-sticker font-display text-5xl leading-none tracking-wide break-words">
           {juntada.titulo ?? "Juntada"}
         </h1>
         {juntada.cancelada && (
@@ -64,8 +76,8 @@ async function Contenido({
       <section className="space-y-3">
         <h2 className="font-heading text-lg font-semibold">Puntos</h2>
         <ul className="space-y-2">
-          {juntada.personas.map((persona) => (
-            <li key={persona.integranteId} className="space-y-2 rounded-xl bg-card p-3">
+          {juntada.personas.map((persona, indice) => (
+            <li key={persona.integranteId} className="aparece space-y-2 rounded-2xl bg-card p-3 relieve" style={{ animationDelay: `${0.1 + indice * 0.06}s` }}>
               <div className="flex items-center gap-3">
                 <Avatar
                   nombre={persona.nombre}

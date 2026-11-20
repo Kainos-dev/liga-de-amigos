@@ -148,7 +148,8 @@ export function FormularioJuntada({
       return;
     }
     const juntadaId = inicial?.id ?? (resultado.datos as { juntada: { id: string } }).juntada.id;
-    router.push(`/grupos/${grupoId}/juntadas/${juntadaId}`);
+    // ?nueva=1: la pantalla de la juntada festeja con confeti (solo al crearla).
+    router.push(`/grupos/${grupoId}/juntadas/${juntadaId}${inicial ? "" : "?nueva=1"}`);
     router.refresh();
   }
 

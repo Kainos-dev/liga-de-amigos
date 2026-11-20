@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { hoy } from "@/server/domain/fechas";
 import { esIdValido } from "@/server/api";
 import { datosParaFormulario, obtenerJuntada } from "@/server/services/juntadas";
-import { accederAlGrupo, CLASE_PAGINA, oNulo, SinAcceso, Volver } from "../../../acceso";
+import { accederAlGrupo, CLASE_PAGINA, Esqueleto, oNulo, SinAcceso, Volver } from "../../../acceso";
 import { FormularioJuntada } from "../../formulario-juntada";
 
 export const metadata: Metadata = { title: "Editar juntada · Liga de Amigos" };
@@ -13,7 +13,7 @@ export default function PaginaEditarJuntada({
 }: PageProps<"/grupos/[grupoId]/juntadas/[juntadaId]/editar">) {
   return (
     <main className={CLASE_PAGINA}>
-      <Suspense fallback={<p className="text-muted-foreground">Cargando…</p>}>
+      <Suspense fallback={<Esqueleto />}>
         <Contenido params={params} />
       </Suspense>
     </main>

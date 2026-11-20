@@ -59,4 +59,17 @@ export function Volver({ href, texto }: { href: string; texto: string }) {
   );
 }
 
-export const CLASE_PAGINA = "mx-auto w-full max-w-md space-y-8 px-4 py-10";
+// pb-32: deja lugar para la barra inferior fija.
+export const CLASE_PAGINA = "mx-auto w-full max-w-md space-y-8 px-4 pt-8 pb-32";
+
+/** Mientras carga: formas que anticipan el contenido (en lugar de "Cargando…"). */
+export function Esqueleto() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Cargando">
+      <div className="h-14 w-2/3 animate-pulse rounded-xl bg-card" />
+      <div className="h-44 animate-pulse rounded-3xl bg-card" />
+      <div className="h-20 animate-pulse rounded-2xl bg-card" />
+      <div className="h-20 animate-pulse rounded-2xl bg-card" />
+    </div>
+  );
+}

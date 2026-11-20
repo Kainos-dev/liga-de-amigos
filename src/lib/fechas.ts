@@ -33,3 +33,18 @@ export function fechaLarga(texto: string): string {
 export function conSigno(puntos: number): string {
   return puntos > 0 ? `+${puntos}` : String(puntos);
 }
+
+const formatoMes = new Intl.DateTimeFormat("es-AR", { month: "short", timeZone: "UTC" });
+
+/** "2026-11-14" → { dia: "14", mes: "NOV" } (para el bloque de fecha de las juntadas). */
+export function diaYMes(texto: string): { dia: string; mes: string } {
+  return {
+    dia: texto.slice(8, 10),
+    mes: formatoMes.format(aFecha(texto)).replace(".", "").toUpperCase(),
+  };
+}
+
+/** "2026-11-01" → "1/11" */
+export function diaBarraMes(texto: string): string {
+  return `${Number(texto.slice(8, 10))}/${Number(texto.slice(5, 7))}`;
+}
