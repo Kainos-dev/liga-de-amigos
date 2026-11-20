@@ -62,6 +62,7 @@ export function FormularioCrearCuenta() {
       <Campo
         id="nombre"
         etiqueta="Nombre o apodo"
+        ayuda="Es como te van a ver tus amigos en los grupos."
         maxLength={30}
         required
         value={nombre}
@@ -79,16 +80,13 @@ export function FormularioCrearCuenta() {
           alElegir={cambiarFoto}
           alQuitar={() => cambiarFoto(null)}
         />
-        <p className="text-xs text-muted-foreground">
-          Sin foto se muestra la inicial de tu nombre. La podés cambiar cuando quieras.
-        </p>
       </div>
 
       <Campo
         id="usuario"
         name="usuario"
         etiqueta="Usuario para entrar"
-        ayuda="Letras, números, punto o guion bajo. Lo vas a usar para entrar desde otro celular."
+        ayuda="Lo usás para entrar a la app junto con el PIN. Sin espacios: letras, números, punto o guion bajo."
         autoComplete="username"
         autoCapitalize="none"
         minLength={3}
