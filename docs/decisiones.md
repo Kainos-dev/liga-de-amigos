@@ -131,6 +131,14 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 - **Asistir y Faltar** no se archivan; si el grupo no quiere que sumen o resten, se les pone 0.
 - Código: `src/server/domain/configuracion-acciones.ts` (separado de `acciones.ts`, que también se usa en el navegador), `src/server/services/configuracion-acciones.ts`, API `GET/POST /api/v1/grupos/[grupoId]/acciones` (`?todas=1` incluye archivadas) y `PATCH .../acciones/[accionId]`.
 
+## Resúmenes y cierre de temporada (confirmado)
+
+- **No se inventan ganadores**: cada destacado aparece solo si hay datos que lo respalden; los empates se muestran como empates. La lógica está en `src/server/domain/resumenes.ts` (con tests).
+- **Resumen del mes** (`/grupos/[id]/resumen?mes=AAAA-MM`): juntadas, promedio de asistentes, figura del mes (más puntos), el más presente, destacados por cada acción positiva (quién la hizo más veces), mayor subida y bajada en la tabla respecto del inicio del mes, el desastre del mes (más puntos perdidos) y la juntada más concurrida (solo si hubo al menos dos).
+- **Resumen del año** (`/grupos/[id]/resumen-anual?anio=`): campeón (o "va primero" mientras está abierta), juntadas por mes (gráfico de barras con vista en tabla), mes más activo y más flojo (los meses que no pasaron no cuentan), promedio de asistentes, el más constante (mejor % de asistencia con al menos 3 juntadas con dato, para no castigar a quien se sumó tarde), el más presente, destacados por acción, mayor ascenso y caída desde el cierre del primer mes con puntos, y el desastre del año.
+- **Cierre de temporada**: solo administradores, desde el 1 de enero. Guarda una foto (`cierres_temporada`) de la tabla final y del resumen anual; desde ahí se muestran, aunque después alguien se vaya o se renombre una acción. Una temporada cerrada no admite cargas ni ediciones. No se reabre.
+- Pasado el período de gracia, aunque nadie la cierre, la temporada ya no admite cargas.
+
 ## Plan de desarrollo por etapas
 
 1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
@@ -139,7 +147,7 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 4. **Juntadas y acciones sueltas** — hecho: registrar, editar, cancelar y eliminar juntadas con recálculo de puntos; puntos sueltos.
 5. **Tabla de la liga** — hecho: posiciones, desglose, asistencia y cambios de posición; adelanto en el inicio del grupo.
 6. **Acciones configurables** — hecho: editar puntos (rigen desde hoy), renombrar, crear y archivar acciones.
-7. **Resúmenes y temporadas**: resumen mensual y anual, cierre de temporada.
+7. **Resúmenes y temporadas** — hecho: resumen mensual y anual, cierre de temporada con foto congelada.
 
 ## Propuestas para las preguntas pendientes (MVP)
 

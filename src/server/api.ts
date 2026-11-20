@@ -37,6 +37,13 @@ export function manejar<Contexto>(
       if (error instanceof ErrorNoAutenticado) return responderError(401, error.message);
       if (error instanceof ErrorSinPermiso) return responderError(403, error.message);
       console.error(error);
+      // En desarrollo agregamos el detalle para poder diagnosticar; en producción nunca.
+      if (process.env.NODE_ENV === "development") {
+        return Response.json(
+          { error: "Algo salió mal. Probá de nuevo en un rato", detalle: String(error) },
+          { status: 500 },
+        );
+      }
       return responderError(500, "Algo salió mal. Probá de nuevo en un rato");
     }
   };

@@ -3,6 +3,7 @@
  * Después del 31/12 hay un período de gracia para cargar lo atrasado;
  * pasado ese plazo la temporada se puede cerrar.
  */
+import { ErrorDeDominio } from "./errores";
 
 export const DIAS_DE_GRACIA = 15;
 
@@ -31,4 +32,21 @@ export function admiteCargas(
 ): boolean {
   if (cerrada) return false;
   return hoy <= finDelPeriodoDeGracia(anio, diasDeGracia);
+}
+
+/**
+ * Se puede cerrar una temporada recién cuando terminó el año (desde el 1 de
+ * enero). Cerrarla antes del fin del período de gracia corta las cargas
+ * atrasadas: es decisión del administrador. Pasado el período de gracia ya no
+ * se puede cargar nada aunque no se cierre.
+ */
+export function validarCierre(anio: number, hoy: string, cerrada: boolean): void {
+  if (cerrada) {
+    throw new ErrorDeDominio(`La temporada ${anio} ya está cerrada`);
+  }
+  if (hoy <= inicioYFin(anio).fin) {
+    throw new ErrorDeDominio(
+      `La temporada ${anio} termina el 31 de diciembre: se puede cerrar desde el 1 de enero`,
+    );
+  }
 }

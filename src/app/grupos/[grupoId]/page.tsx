@@ -89,6 +89,17 @@ async function ContenidoDelGrupo({ params }: { params: Promise<{ grupoId: string
         </Link>
       )}
 
+      <div className="grid grid-cols-2 gap-3">
+        <Link href={`${base}/resumen`} className="rounded-xl bg-card p-4 hover:bg-muted">
+          <span className="font-heading block font-semibold">Resumen del mes</span>
+          <span className="text-sm text-muted-foreground">Destacados y movimientos</span>
+        </Link>
+        <Link href={`${base}/resumen-anual`} className="rounded-xl bg-card p-4 hover:bg-muted">
+          <span className="font-heading block font-semibold">Resumen del año</span>
+          <span className="text-sm text-muted-foreground">La historia de la temporada</span>
+        </Link>
+      </div>
+
       <section className="space-y-3">
         <h2 className="font-heading text-lg font-semibold">Últimas juntadas</h2>
         {juntadas.length === 0 ? (

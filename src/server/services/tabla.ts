@@ -1,6 +1,5 @@
 import "server-only";
 import { sql } from "@/server/db";
-import { ErrorDeDominio } from "@/server/domain/errores";
 import { hoy } from "@/server/domain/fechas";
 import {
   armarTabla,
@@ -10,8 +9,8 @@ import {
   porcentajeDeAsistencia,
   type RegistroParaTabla,
 } from "@/server/domain/tabla";
-import { anioDeTemporada } from "@/server/domain/temporadas";
 import { exigirIntegrante } from "@/server/services/permisos";
+import { elegirTemporada, type TemporadaElegida } from "@/server/services/temporadas";
 
 export type FilaDeLaLiga = FilaDeTabla & {
   avatarEmoji: string | null;
@@ -23,20 +22,24 @@ export type FilaDeLaLiga = FilaDeTabla & {
   cambio: number | null;
 };
 
-export type TablaDeLaLiga = {
+/** La tabla en sí, igual para todos los integrantes (es lo que se congela al cerrar). */
+export type TablaCalculada = {
   anio: number;
   cerrada: boolean;
-  temporadas: number[]; // años disponibles, del más nuevo al más viejo
   juntadas: number; // juntadas de la temporada (sin contar canceladas)
   comparadoCon: string | null; // fecha de corte de la comparación (AAAA-MM-DD)
   acciones: Record<string, string>; // accionId → nombre, para el desglose
   filas: FilaDeLaLiga[];
+};
+
+export type TablaDeLaLiga = TablaCalculada & {
+  temporadas: number[]; // años disponibles, del más nuevo al más viejo
   miIntegranteId: string;
 };
 
 /**
- * Tabla de una temporada (por defecto la del año actual), armada siempre a
- * partir de los registros de puntos: no hay ningún total guardado.
+ * Tabla de una temporada (por defecto la del año actual). Si la temporada
+ * está cerrada, se muestra la foto guardada al cerrarla.
  */
 export async function obtenerTabla(
   usuarioId: string,
@@ -44,21 +47,26 @@ export async function obtenerTabla(
   anioPedido?: number,
 ): Promise<TablaDeLaLiga> {
   const membresia = await exigirIntegrante(usuarioId, grupoId);
-  const fechaDeHoy = hoy();
+  const { temporada, anios } = await elegirTemporada(grupoId, anioPedido);
 
-  const temporadas = await sql<{ id: string; anio: number; cerrada: boolean }[]>`
-    SELECT id, anio, cerrada_en IS NOT NULL AS cerrada
-    FROM temporadas WHERE grupo_id = ${grupoId}
-    ORDER BY anio DESC
+  const congelada = temporada.cerrada ? await tablaCongelada(temporada.id) : null;
+  const tabla = congelada ?? (await calcularTabla(grupoId, temporada));
+
+  return { ...tabla, temporadas: anios, miIntegranteId: membresia.integranteId };
+}
+
+async function tablaCongelada(temporadaId: string): Promise<TablaCalculada | null> {
+  const [cierre] = await sql<{ tabla: TablaCalculada }[]>`
+    SELECT tabla FROM cierres_temporada WHERE temporada_id = ${temporadaId}
   `;
-  const anio = anioPedido ?? anioDeTemporada(fechaDeHoy);
-  // Si no hay temporada de este año todavía (ej. 1 de enero), mostramos la última.
-  const temporada =
-    temporadas.find((t) => t.anio === anio) ?? (anioPedido ? undefined : temporadas[0]);
-  if (!temporada) {
-    throw new ErrorDeDominio(`No hay temporada ${anio} en este grupo`);
-  }
+  return cierre?.tabla ?? null;
+}
 
+/** Arma la tabla a partir de los registros de puntos: no hay ningún total guardado. */
+export async function calcularTabla(
+  grupoId: string,
+  temporada: TemporadaElegida,
+): Promise<TablaCalculada> {
   const [registros, integrantes, asistencia, [{ juntadas }], acciones] = await Promise.all([
     sql<(RegistroParaTabla & { fecha: string })[]>`
       SELECT r.integrante_id AS "integranteId", r.accion_id AS "accionId", a.clave,
@@ -67,21 +75,7 @@ export async function obtenerTabla(
       JOIN acciones a ON a.id = r.accion_id
       WHERE r.grupo_id = ${grupoId} AND r.temporada_id = ${temporada.id}
     `,
-    // Activos, más quienes se fueron pero tienen puntos o asistencia en la temporada.
-    sql<{ id: string; nombre: string; avatarEmoji: string | null; avatarColor: string | null; activo: boolean }[]>`
-      SELECT i.id, i.nombre, u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor",
-             i.egreso_en IS NULL AS activo
-      FROM integrantes i
-      LEFT JOIN usuarios u ON u.id = i.usuario_id
-      WHERE i.grupo_id = ${grupoId}
-        AND (
-          i.egreso_en IS NULL
-          OR EXISTS (SELECT 1 FROM registros_puntos r
-                     WHERE r.integrante_id = i.id AND r.temporada_id = ${temporada.id})
-          OR EXISTS (SELECT 1 FROM participaciones p JOIN juntadas j ON j.id = p.juntada_id
-                     WHERE p.integrante_id = i.id AND j.temporada_id = ${temporada.id})
-        )
-    `,
+    integrantesDeLaTemporada(grupoId, temporada.id),
     // Asistencia sale de las participaciones (no de los puntos): así cuenta
     // aunque el grupo haya cambiado o archivado la acción de faltar.
     sql<{ integranteId: string; fue: number; falto: number }[]>`
@@ -105,7 +99,7 @@ export async function obtenerTabla(
   const tabla = armarTabla(integrantes, registros);
 
   // Comparación con la tabla al cierre del mes anterior.
-  const corte = fechaDeCorteParaComparar(temporada.anio, fechaDeHoy);
+  const corte = fechaDeCorteParaComparar(temporada.anio, hoy());
   let cambios: Record<string, number> | null = null;
   if (corte) {
     const anteriores = registros.filter((r) => r.fecha < corte);
@@ -130,11 +124,35 @@ export async function obtenerTabla(
   return {
     anio: temporada.anio,
     cerrada: temporada.cerrada,
-    temporadas: temporadas.map((t) => t.anio),
     juntadas,
     comparadoCon: cambios ? corte : null,
     acciones: Object.fromEntries(acciones.map((a) => [a.id, a.nombre])),
     filas,
-    miIntegranteId: membresia.integranteId,
   };
+}
+
+export type IntegranteDeTemporada = {
+  id: string;
+  nombre: string;
+  avatarEmoji: string | null;
+  avatarColor: string | null;
+  activo: boolean;
+};
+
+/** Activos, más quienes se fueron pero tienen puntos o asistencia en la temporada. */
+export function integrantesDeLaTemporada(grupoId: string, temporadaId: string) {
+  return sql<IntegranteDeTemporada[]>`
+    SELECT i.id, i.nombre, u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor",
+           i.egreso_en IS NULL AS activo
+    FROM integrantes i
+    LEFT JOIN usuarios u ON u.id = i.usuario_id
+    WHERE i.grupo_id = ${grupoId}
+      AND (
+        i.egreso_en IS NULL
+        OR EXISTS (SELECT 1 FROM registros_puntos r
+                   WHERE r.integrante_id = i.id AND r.temporada_id = ${temporadaId})
+        OR EXISTS (SELECT 1 FROM participaciones p JOIN juntadas j ON j.id = p.juntada_id
+                   WHERE p.integrante_id = i.id AND j.temporada_id = ${temporadaId})
+      )
+  `;
 }

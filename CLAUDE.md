@@ -37,6 +37,6 @@ pnpm db:status
 
 ## Estado actual
 
-Etapas 1 a 6 listas: motor de puntos en `src/server/domain/` (con tests), esquema en `db/migrations/` (aplicado en Neon), cuentas con usuario + PIN (sin email), grupos con código y solicitudes, juntadas y puntos sueltos, tabla de la liga y acciones configurables. Plan completo por etapas en `docs/decisiones.md`.
+Las 7 etapas del plan están listas: motor de puntos, cuentas con usuario + PIN, grupos con código y solicitudes, juntadas y puntos sueltos, tabla de la liga, acciones configurables, resúmenes mensual y anual y cierre de temporada. Detalle de cada decisión en `docs/decisiones.md`.
 
-Próximo paso: etapa 7, resúmenes mensual y anual y cierre de temporada.
+Próximo paso: probar con el grupo real y ajustar. Antes de usarlo en serio, crear una base de producción separada en Neon.
