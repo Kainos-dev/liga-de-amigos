@@ -4,6 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { fechaCorta } from "@/lib/fechas";
 import { listarJuntadas } from "@/server/services/juntadas";
 import { listarSolicitudes } from "@/server/services/solicitudes";
+import { obtenerTabla } from "@/server/services/tabla";
 import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "./acceso";
 
 export default function PaginaGrupo({ params }: PageProps<"/grupos/[grupoId]">) {
@@ -24,11 +25,14 @@ async function ContenidoDelGrupo({ params }: { params: Promise<{ grupoId: string
   const { usuario, grupo } = acceso;
 
   const esAdmin = grupo.miRol === "admin";
-  const [juntadas, solicitudes] = await Promise.all([
+  const [juntadas, solicitudes, tabla] = await Promise.all([
     listarJuntadas(usuario.id, grupo.id, 20),
     esAdmin ? listarSolicitudes(usuario.id, grupo.id) : Promise.resolve([]),
+    obtenerTabla(usuario.id, grupo.id),
   ]);
   const base = `/grupos/${grupo.id}`;
+  const miFila = tabla.filas.find((f) => f.integranteId === tabla.miIntegranteId);
+  const hayPuntos = tabla.filas.some((f) => f.puntos !== 0);
 
   return (
     <div className="space-y-8">
@@ -58,6 +62,32 @@ async function ContenidoDelGrupo({ params }: { params: Promise<{ grupoId: string
           Puntos sueltos
         </Link>
       </div>
+
+      {hayPuntos && (
+        <Link href={`${base}/tabla`} className="block space-y-3 rounded-xl bg-card p-4 hover:bg-muted">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-heading text-lg font-semibold">Tabla {tabla.anio}</h2>
+            {miFila && (
+              <p className="text-sm text-muted-foreground">
+                Vas <span className="font-heading font-bold text-amarillo">{miFila.posicion}º</span>{" "}
+                con {miFila.puntos} pts
+              </p>
+            )}
+          </div>
+          <ol className="space-y-1.5">
+            {tabla.filas.slice(0, 3).map((fila) => (
+              <li key={fila.integranteId} className="flex items-center gap-3">
+                <span className="font-heading w-5 text-center font-bold text-amarillo tabular-nums">
+                  {fila.posicion}
+                </span>
+                <span className="font-heading min-w-0 flex-1 truncate">{fila.nombre}</span>
+                <span className="font-heading font-semibold tabular-nums">{fila.puntos}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="text-sm text-amarillo">Ver tabla completa →</p>
+        </Link>
+      )}
 
       <section className="space-y-3">
         <h2 className="font-heading text-lg font-semibold">Últimas juntadas</h2>

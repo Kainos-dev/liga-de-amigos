@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { armarTabla, type RegistroParaTabla } from "./tabla";
+import {
+  armarTabla,
+  cambiosDePosicion,
+  fechaDeCorteParaComparar,
+  porcentajeDeAsistencia,
+  type RegistroParaTabla,
+} from "./tabla";
 
 const asistir = (integranteId: string): RegistroParaTabla => ({
   integranteId,
@@ -101,11 +107,58 @@ describe("armarTabla", () => {
       asistir("juli"),
       accion("juli", "casa", 3),
     ]);
-    expect(tabla[0].desglose).toEqual({ asistir: 6, casa: 3 });
+    expect(tabla[0].desglose).toEqual({
+      asistir: { veces: 2, puntos: 6 },
+      casa: { veces: 1, puntos: 3 },
+    });
   });
 
   it("ignora registros de quien no está en la lista", () => {
     const tabla = armarTabla(integrantes, [asistir("otro")]);
     expect(tabla.every((f) => f.puntos === 0)).toBe(true);
+  });
+});
+
+describe("cambiosDePosicion", () => {
+  it("positivo si subió, negativo si bajó, cero si quedó igual", () => {
+    const antes = armarTabla(integrantes, [asistir("juli"), asistir("juli"), asistir("tomi")]);
+    // Después Caro se mandó con todo y pasó al frente.
+    const ahora = armarTabla(integrantes, [
+      asistir("juli"),
+      asistir("juli"),
+      asistir("tomi"),
+      accion("caro", "casa", 10),
+    ]);
+    expect(cambiosDePosicion(ahora, antes, true)).toEqual({ caro: 2, juli: -1, tomi: -1 });
+  });
+
+  it("sin puntos en la tabla anterior no hay comparación", () => {
+    const tabla = armarTabla(integrantes, [asistir("juli")]);
+    expect(cambiosDePosicion(tabla, armarTabla(integrantes, []), false)).toBeNull();
+  });
+});
+
+describe("porcentajeDeAsistencia", () => {
+  it("fue sobre fue + faltó, redondeado", () => {
+    expect(porcentajeDeAsistencia(2, 1)).toBe(67);
+    expect(porcentajeDeAsistencia(4, 0)).toBe(100);
+  });
+
+  it("sin datos devuelve null, no 0%", () => {
+    expect(porcentajeDeAsistencia(0, 0)).toBeNull();
+  });
+});
+
+describe("fechaDeCorteParaComparar", () => {
+  it("en la temporada actual compara con el cierre del mes anterior", () => {
+    expect(fechaDeCorteParaComparar(2026, "2026-11-20")).toBe("2026-11-01");
+  });
+
+  it("en enero de la temporada actual todavía no hay con qué comparar", () => {
+    expect(fechaDeCorteParaComparar(2026, "2026-01-15")).toBeNull();
+  });
+
+  it("en una temporada pasada compara con el 1 de diciembre", () => {
+    expect(fechaDeCorteParaComparar(2026, "2027-03-10")).toBe("2026-12-01");
   });
 });

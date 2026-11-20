@@ -110,13 +110,23 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 - **Vista previa**: el formulario usa el mismo motor de puntos (`src/server/domain/puntos.ts`, código puro) para mostrar cómo quedan los puntos antes de guardar; el servidor recalcula todo igual.
 - Código: `src/server/domain/juntadas.ts`, `src/server/services/{juntadas,acciones-sueltas,acciones,temporadas}.ts`, API en `src/app/api/v1/grupos/[grupoId]/{juntadas,acciones-sueltas,acciones}`.
 
+## Tabla de la liga (confirmado)
+
+- **Se arma siempre desde los registros de puntos** de la temporada (`src/server/services/tabla.ts` + `src/server/domain/tabla.ts`). Nunca se guarda un total.
+- **Quiénes aparecen**: integrantes activos, más quienes se fueron pero tienen puntos o asistencia en esa temporada (marcados "ya no está").
+- **Cambio de posición (flechas)**: respecto de la tabla al cierre del mes anterior. En enero no hay comparación; para temporadas pasadas se compara con el 1 de diciembre.
+- **Porcentaje de asistencia**: fue / (fue + faltó). "No invitado" y "sin dato" no cuentan; sin datos se muestra "–", no 0%. Sale de la asistencia cargada, no de los puntos.
+- **Detalle por persona**: fue, faltó, % de asistencia, aportes (acciones positivas que no son asistir) y desglose por acción (veces y puntos).
+- **Temporadas pasadas**: se eligen con `?anio=`.
+- Las juntadas canceladas no cuentan ni en puntos ni en asistencia.
+
 ## Plan de desarrollo por etapas
 
 1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
 2. **Cuentas** — hecho: usuario + PIN sin email, sesiones, crear cuenta, entrar, salir y eliminar cuenta.
 3. **Grupos e integrantes** — hecho: crear grupo, código para unirse, solicitudes que acepta un administrador, roles e integrantes sin cuenta.
 4. **Juntadas y acciones sueltas** — hecho: registrar, editar, cancelar y eliminar juntadas con recálculo de puntos; puntos sueltos.
-5. **Tabla de la liga**: posiciones, desglose y cambios de posición.
+5. **Tabla de la liga** — hecho: posiciones, desglose, asistencia y cambios de posición; adelanto en el inicio del grupo.
 6. **Acciones configurables**: editar puntos y agregar o archivar acciones.
 7. **Resúmenes y temporadas**: resumen mensual y anual, cierre de temporada.
 

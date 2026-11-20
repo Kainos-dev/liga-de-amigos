@@ -25,8 +25,8 @@ export type FilaDeTabla = {
   puntos: number;
   asistencias: number;
   contribuciones: number;
-  /** Puntos sumados por cada acción: { [accionId]: puntos } */
-  desglose: Record<string, number>;
+  /** Por cada acción: cuántas veces y cuántos puntos sumó. { [accionId]: {...} } */
+  desglose: Record<string, { veces: number; puntos: number }>;
 };
 
 export function armarTabla(
@@ -53,8 +53,9 @@ export function armarTabla(
     if (!fila) continue; // registro de alguien que no está en la lista pedida
 
     fila.puntos += registro.puntos;
-    fila.desglose[registro.accionId] =
-      (fila.desglose[registro.accionId] ?? 0) + registro.puntos;
+    const desglose = (fila.desglose[registro.accionId] ??= { veces: 0, puntos: 0 });
+    desglose.veces += 1;
+    desglose.puntos += registro.puntos;
 
     if (registro.clave === "asistir") {
       fila.asistencias += 1;
@@ -92,4 +93,47 @@ function empatan(a: FilaDeTabla, b: FilaDeTabla): boolean {
     a.asistencias === b.asistencias &&
     a.contribuciones === b.contribuciones
   );
+}
+
+/**
+ * Cuántos puestos subió (positivo) o bajó (negativo) cada integrante respecto
+ * de una tabla anterior. Si en la tabla anterior todavía no había puntos
+ * cargados, no hay con qué comparar y devuelve null.
+ */
+export function cambiosDePosicion(
+  actual: FilaDeTabla[],
+  anterior: FilaDeTabla[],
+  habiaPuntosAntes: boolean,
+): Record<string, number> | null {
+  if (!habiaPuntosAntes) return null;
+
+  const posicionAnterior = new Map(anterior.map((f) => [f.integranteId, f.posicion]));
+  const cambios: Record<string, number> = {};
+  for (const fila of actual) {
+    const antes = posicionAnterior.get(fila.integranteId);
+    if (antes !== undefined) cambios[fila.integranteId] = antes - fila.posicion;
+  }
+  return cambios;
+}
+
+/**
+ * Porcentaje de asistencia: veces que fue sobre veces que fue o faltó.
+ * "No invitado" y "sin dato" no cuentan. Sin datos, devuelve null (no 0%).
+ */
+export function porcentajeDeAsistencia(fue: number, falto: number): number | null {
+  const total = fue + falto;
+  if (total === 0) return null;
+  return Math.round((fue / total) * 100);
+}
+
+/**
+ * Hasta qué fecha (sin incluirla) se arma la tabla "anterior" para comparar:
+ * el primer día del mes actual. Para una temporada ya pasada, el 1 de diciembre.
+ * Si ese corte cae en el inicio de la temporada, no hay comparación (null).
+ */
+export function fechaDeCorteParaComparar(anioTemporada: number, hoy: string): string | null {
+  const anioHoy = Number(hoy.slice(0, 4));
+  const corte =
+    anioTemporada < anioHoy ? `${anioTemporada}-12-01` : `${hoy.slice(0, 7)}-01`;
+  return corte <= `${anioTemporada}-01-01` ? null : corte;
 }
