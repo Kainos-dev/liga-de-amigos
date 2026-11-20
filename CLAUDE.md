@@ -37,6 +37,6 @@ pnpm db:status
 
 ## Estado actual
 
-Proyecto base creado (Next, Tailwind, shadcn, paleta, conexión SQL, dbmate, Vitest). Todavía no hay esquema de base, autenticación ni lógica.
+Etapa 1 lista: motor de puntos en `src/server/domain/` (con tests) y primera migración en `db/migrations/` (pendiente de aplicar en Neon). Plan completo por etapas en `docs/decisiones.md`.
 
-Próximo paso: diseñar la primera migración (usuarios/auth, grupos, membresías, temporadas, juntadas, participaciones, reglas, registros de puntos, audit_log) y el motor de puntos con tests.
+Próximo paso: etapa 2, login con Better Auth.

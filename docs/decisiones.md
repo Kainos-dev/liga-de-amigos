@@ -36,36 +36,89 @@ Route Handler /api/v1 ─────┘
 - Los Route Handlers son finos: validan con Zod, llaman al service y responden.
 - Cada consulta filtra por `grupo_id` y cada service verifica la membresía del usuario.
 
-## Modelo de datos (lineamientos)
+## Modelo de datos
 
-- **Participación con estado explícito**: `asistio | ausente_confirmado | no_invitado | sin_dato`.
-- **Puntos como libro de registros** (`score_entries` o similar): una fila por punto asignado, con juntada, integrante, regla, versión de reglas, puntos y motivo. Clave única `(juntada, integrante, tipo_de_regla)` para evitar duplicados.
-- **Edición de una juntada**: en una transacción se borran sus registros de puntos y se recalculan.
-- **Reglas versionadas por temporada**. Si cambian a mitad de temporada, el grupo elige "rige desde hoy" o "recalcular todo".
+Esquema en `db/migrations/20261120151948_esquema_inicial.sql`. Motor de puntos en `src/server/domain/`.
+
+- **Integrantes sin cuenta**: un integrante puede existir sin usuario (alguien que va a las juntadas pero no usa la app). Si después se registra, reclama ese perfil con su historial.
 - **Membresía con fecha de ingreso y egreso**, para comparar asistencia "desde que se incorporó".
+- **Participación con estado explícito**: `asistio | ausente_confirmado | no_invitado | sin_dato`. Sin fila = sin dato.
+- **Puntos como libro de registros** (`registros_puntos`): una fila por punto asignado, con integrante, acción, puntos y motivo. Claves únicas para que la misma acción no puntúe dos veces a la misma persona en la misma juntada.
+- **Edición de una juntada**: en una transacción se borran sus registros de puntos y se recalculan.
+- **Claves foráneas compuestas `(grupo_id, id)`**: la base impide mezclar datos de grupos distintos.
 - **Cierre de temporada**: se guarda una foto congelada de la tabla final y del resumen anual.
 - **`audit_log`**: quién cambió qué y cuándo.
-- Los totales se calculan con SQL a partir de los registros, no se guardan como número editable.
+- Los totales se calculan con SQL a partir de los registros, no se guardan como número editable. Pueden ser negativos.
+
+## Acciones y puntos (confirmado)
+
+- Cada grupo tiene su lista de **acciones** con puntos **positivos o negativos**. Al crear el grupo se copia la lista por defecto; después el grupo edita los puntos y agrega o archiva acciones.
+- **Asistencia automática**: marcar "asistió" aplica la acción *Asistir*; marcar "faltó" (ausencia confirmada) aplica *Faltar*. "No invitado" y "sin dato" no suman ni restan.
+- **Acciones especiales encima**: se suman a la automática (Faltar -1 + Faltó por estar con la pareja -3 = -4).
+- **Cada uno suma por separado**: si cocinan dos, cada uno recibe los puntos completos.
+- **Contribuir sin asistir** está permitido (prestó la casa y no fue).
+- **Una vez por persona, por acción y por juntada.**
+- **Acciones sueltas**: también se cargan puntos fuera de una juntada, con fecha y acción ("se acordó del cumpleaños").
+- **Cambio de puntos**: se guarda un historial de valores "vigente desde". Cada evento usa el valor vigente **en su fecha**, así lo ya pasado conserva su valor aunque se edite después. Más adelante: opción "recalcular toda la temporada".
+- **Quién edita acciones**: solo administradores. Una acción usada no se borra, se archiva.
+- **Desempates**: más asistencias, después más contribuciones (acciones positivas que no son asistir), después posición compartida.
+
+Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
+
+| Acción | Puntos |
+|---|---|
+| Asistir (automática) | +3 |
+| Poner casa | +3 |
+| Cocinar | +2 |
+| Organizar | +2 |
+| Propuso plan | +1 |
+| Poner auto | +1 |
+| Faltar (automática) | -1 |
+| Faltar sin avisar | -3 |
+| Faltó por estar con la pareja | -3 |
+| Llegar muy tarde | -2 |
+
+## Plan de desarrollo por etapas
+
+1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
+2. **Login** con Better Auth (Google + enlace mágico con Resend).
+3. **Grupos e integrantes**: crear grupo, invitar por link (vence a los 7 días), roles.
+4. **Juntadas y acciones sueltas**: registrar y editar, con recálculo de puntos e historial.
+5. **Tabla de la liga**: posiciones, desglose y cambios de posición.
+6. **Acciones configurables**: editar puntos y agregar o archivar acciones.
+7. **Resúmenes y temporadas**: resumen mensual y anual, cierre de temporada.
 
 ## Propuestas para las preguntas pendientes (MVP)
 
 Pendientes de validar con el grupo real:
 
-- **Reglas**: cada grupo tiene su propia liga, que arranca desde una plantilla de valores por defecto.
 - **Carga de juntadas**: cualquier integrante puede cargar. Solo los administradores editan pasadas 48 h.
 - **Confirmación de asistencia**: no en el MVP.
-- **Temporada**: año calendario por defecto, con período de gracia (por ejemplo, 15 días de enero) antes del cierre.
-- **Desempates**: más asistencias, después más contribuciones, después empate compartido.
+- **Temporada**: año calendario por defecto, con período de gracia de 15 días de enero antes del cierre.
 - **Plataforma**: web responsive mobile-first, instalable como PWA.
-- **Sin resolver todavía**: juntadas canceladas e invitados externos.
+
+Confirmadas:
+
+- **Administradores**: el que crea el grupo es administrador y puede nombrar a otros.
+- **Invitaciones**: link para compartir (por ejemplo, por WhatsApp), vence a los 7 días.
+- **Juntada cancelada**: se borra o se marca cancelada y no suma puntos.
+- **Invitados externos**: texto libre en la juntada, sin puntos.
+- **Base de datos**: por ahora se desarrolla sobre la base de Neon del `.env`. Antes de que entre el grupo real, crear una base (o branch) separada para producción.
 
 ## Identidad visual
 
 | Color | Hex | Uso |
 |---|---|---|
-| Violeta | `#421454` | Fondos (`bg-background`, `bg-violeta`) |
-| Magenta | `#802C62` | Secundario (`bg-secondary`, `bg-magenta`) |
+| Violeta | `#310e3f` | Fondos (`bg-background`, `bg-violeta`) |
 | Naranja | `#FF5B42` | Acción principal (`bg-primary`, `bg-naranja`) |
 | Amarillo | `#FFD749` | Acentos, destacados, foco (`bg-accent`, `bg-amarillo`) |
 
-Tema único oscuro sobre violeta, definido en `src/app/globals.css`. Texto crema `#FFF6EC`. Sobre naranja y amarillo se usa texto violeta oscuro `#2A0B37` por contraste.
+Tema único oscuro sobre violeta, definido en `src/app/globals.css`. Texto crema `#FFF6EC`. Sobre naranja y amarillo se usa texto violeta oscuro `#1E0727` por contraste. El secundario (`bg-secondary`) es un violeta más claro (`#5B2B78`), no un color aparte.
+
+| Tipografía | Clase | Uso |
+|---|---|---|
+| Bangers | `font-display` | Logo, títulos principales, encabezados especiales |
+| Outfit | `font-heading` | Títulos secundarios, tarjetas, nombres y rankings |
+| Inter | `font-sans` (por defecto) | Descripciones, navegación, formularios y datos |
+
+Se cargan con `next/font/google` en `src/app/layout.tsx` (sin dependencias extra).
