@@ -16,7 +16,7 @@ Todavía no está muy familiarizado con TypeScript y tuvo malas experiencias con
 - Usar **pnpm** (nunca npm ni yarn).
 - Interfaz y textos en **español rioplatense** ("registrá", "juntada").
 - **Sin ORM**: SQL directo con `sql` de `src/server/db.ts` (librería `postgres`). Siempre con valores en `${}`, nunca concatenando strings.
-- **Migraciones**: `pnpm db:new <nombre>` crea el archivo en `db/migrations/`. Escribir SQL en `-- migrate:up` y `-- migrate:down`. Aplicar con `pnpm db:migrate`.
+- **Migraciones**: `pnpm db:new <nombre>` crea el archivo en `db/migrations/`. Escribir SQL en `-- migrate:up` y `-- migrate:down`. Aplicar en la base de desarrollo (`.env`, branch `dev` de Neon) con `pnpm db:migrate` y probar ahí. En producción las aplica Vercel solo al publicar (`scripts/vercel-build.mjs`): si una migración falla, no se publica.
 - **Capas**: páginas y route handlers → `src/server/services/` (lógica + permisos) → SQL. Los cálculos puros van en `src/server/domain/` con tests Vitest al lado (`*.test.ts`).
 - **API** para escrituras en `src/app/api/v1/...`, validada con Zod. Debe poder usarla una futura app móvil.
 - **Permisos siempre en el servidor**: todo service que toca datos de un grupo verifica la membresía del usuario.

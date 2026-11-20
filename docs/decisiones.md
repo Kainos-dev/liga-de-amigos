@@ -11,7 +11,7 @@ Registro de lo decidido hasta ahora. Actualizar cuando algo cambie.
 | UI | Tailwind CSS v4 + shadcn/ui (estilo base-nova) + lucide-react + Motion (animaciones con gestos) |
 | Base de datos | Postgres en Neon |
 | Acceso a datos | **SQL directo** con la librería `postgres` (sin ORM) |
-| Migraciones | Archivos `.sql` en `db/migrations/`, aplicados con `dbmate` |
+| Migraciones | Archivos `.sql` en `db/migrations/`, aplicados con `dbmate`. En producción, automáticas al publicar en Vercel (`scripts/vercel-build.mjs`, solo en `VERCEL_ENV=production`) |
 | API | Route Handlers de Next en `src/app/api/v1/...` (sin Hono) |
 | Validación | Zod |
 | Autenticación | Propia: usuario + PIN, sin email (scrypt y tokens con `node:crypto`, sesiones en Postgres) |
