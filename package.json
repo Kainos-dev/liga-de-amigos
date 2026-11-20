@@ -6,22 +6,41 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:new": "dbmate --migrations-dir ./db/migrations --no-dump-schema new",
+    "db:migrate": "dbmate --migrations-dir ./db/migrations --no-dump-schema up",
+    "db:rollback": "dbmate --migrations-dir ./db/migrations --no-dump-schema rollback",
+    "db:status": "dbmate --migrations-dir ./db/migrations --no-dump-schema status"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
+    "better-auth": "^1.7.26",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.5.2",
+    "lucide-react": "^1.76.0",
     "next": "16.4.6",
+    "postgres": "^4.1.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "shadcn": "^4.23.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dbmate": "^2.38.1",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.1.1"
   },
   "packageManager": "pnpm@11.5.2"
 }
