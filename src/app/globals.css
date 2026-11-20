@@ -4,10 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Tipografías (cargadas con next/font en layout.tsx):
+ * - font-display = Bangers: logo, títulos principales, encabezados especiales
+ * - font-heading = Outfit: títulos secundarios, tarjetas, nombres y rankings
+ * - font-sans    = Inter: texto general, navegación, formularios y datos
+ */
 @theme inline {
   /* Colores de marca: bg-violeta, text-amarillo, border-naranja, etc. */
   --color-violeta: var(--violeta);
-  --color-magenta: var(--magenta);
   --color-naranja: var(--naranja);
   --color-amarillo: var(--amarillo);
   --color-crema: var(--crema);
@@ -15,9 +20,10 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  /* Tipografías: ver comentario arriba de @theme */
+  --font-display: var(--fuente-bangers);
+  --font-heading: var(--fuente-outfit);
+  --font-sans: var(--fuente-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -62,24 +68,23 @@
  * usen sus variantes oscuras (inputs, bordes, etc.).
  */
 :root {
-  --violeta: #421454; /* fondos */
-  --magenta: #802c62;
+  --violeta: #310e3f; /* fondos */
   --naranja: #ff5b42;
   --amarillo: #ffd749;
   --crema: #fff6ec; /* texto principal */
-  --violeta-oscuro: #2a0b37; /* texto sobre naranja/amarillo */
+  --violeta-oscuro: #1e0727; /* texto sobre naranja/amarillo */
 
   --background: var(--violeta);
   --foreground: var(--crema);
-  --card: #4f1d64;
+  --card: #3e1750;
   --card-foreground: var(--crema);
-  --popover: #4f1d64;
+  --popover: #3e1750;
   --popover-foreground: var(--crema);
   --primary: var(--naranja);
   --primary-foreground: var(--violeta-oscuro);
-  --secondary: var(--magenta);
+  --secondary: #5b2b78; /* violeta más claro, mismo tono que el fondo */
   --secondary-foreground: var(--crema);
-  --muted: #552670;
+  --muted: #47205c;
   --muted-foreground: #dcc6e4;
   --accent: var(--amarillo);
   --accent-foreground: var(--violeta-oscuro);
@@ -89,15 +94,15 @@
   --ring: var(--amarillo);
   --chart-1: var(--naranja);
   --chart-2: var(--amarillo);
-  --chart-3: #d0569f;
-  --chart-4: #b48ad0;
+  --chart-3: #b48ad0;
+  --chart-4: #dcc6e4;
   --chart-5: var(--crema);
   --radius: 0.75rem;
   --sidebar: var(--violeta-oscuro);
   --sidebar-foreground: var(--crema);
   --sidebar-primary: var(--naranja);
   --sidebar-primary-foreground: var(--violeta-oscuro);
-  --sidebar-accent: var(--magenta);
+  --sidebar-accent: var(--secondary);
   --sidebar-accent-foreground: var(--crema);
   --sidebar-border: rgb(255 246 236 / 14%);
   --sidebar-ring: var(--amarillo);
