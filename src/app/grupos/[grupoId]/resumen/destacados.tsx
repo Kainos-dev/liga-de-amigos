@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AvatarDeIntegrante } from "@/components/avatar";
+import { Avatar } from "@/components/avatar";
 import type { Destacado } from "@/server/domain/resumenes";
 import type { Personas } from "@/server/services/resumenes";
 
@@ -37,10 +37,9 @@ export function TarjetaDestacado({
         <div className="flex -space-x-2">
           {destacado.integranteIds.slice(0, 4).map((id) => (
             <span key={id} className="rounded-full ring-2 ring-card">
-              <AvatarDeIntegrante
+              <Avatar
                 nombre={personas[id]?.nombre ?? "?"}
-                emoji={personas[id]?.avatarEmoji ?? null}
-                color={personas[id]?.avatarColor ?? null}
+                fotoUrl={personas[id]?.fotoUrl ?? null}
                 tamano="mediano"
               />
             </span>

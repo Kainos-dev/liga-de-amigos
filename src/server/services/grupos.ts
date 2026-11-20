@@ -1,6 +1,7 @@
 import "server-only";
 import type { TransactionSql } from "postgres";
 import { sql } from "@/server/db";
+import { urlDeFoto } from "@/server/services/fotos";
 import { ACCIONES_POR_DEFECTO } from "@/server/domain/acciones";
 import { hoy } from "@/server/domain/fechas";
 import { generarCodigo, type Rol } from "@/server/domain/grupos";
@@ -22,8 +23,7 @@ export type IntegranteVista = {
   nombre: string;
   rol: Rol;
   tieneCuenta: boolean;
-  avatarEmoji: string | null; // null si no tiene cuenta
-  avatarColor: string | null;
+  fotoUrl: string | null; // null si no tiene cuenta o no subió foto
   ingresoEn: string; // AAAA-MM-DD
 };
 
@@ -126,8 +126,7 @@ export async function obtenerGrupo(usuarioId: string, grupoId: string): Promise<
     SELECT
       i.id, i.nombre, i.rol,
       i.usuario_id IS NOT NULL AS "tieneCuenta",
-      u.avatar_emoji AS "avatarEmoji",
-      u.avatar_color AS "avatarColor",
+      ${urlDeFoto("u")} AS "fotoUrl",
       i.ingreso_en::text AS "ingresoEn"
     FROM integrantes i
     LEFT JOIN usuarios u ON u.id = i.usuario_id

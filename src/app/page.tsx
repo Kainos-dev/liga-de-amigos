@@ -71,7 +71,7 @@ async function ContenidoSegunSesion() {
   return (
     <div className="space-y-6">
       <Link href="/cuenta" className="flex items-center gap-3 rounded-xl bg-card p-3 hover:bg-muted">
-        <Avatar emoji={usuario.avatarEmoji} color={usuario.avatarColor} />
+        <Avatar nombre={usuario.nombre} fotoUrl={usuario.fotoUrl} />
         <div className="min-w-0">
           <p className="font-heading truncate font-semibold">Hola, {usuario.nombre}</p>
           <p className="text-sm text-muted-foreground">Ver mi cuenta</p>

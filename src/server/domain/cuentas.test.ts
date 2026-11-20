@@ -10,8 +10,6 @@ const valida = {
   usuario: "tomi_el.tano",
   pin: "123456",
   nombre: "Tomi",
-  avatarEmoji: "🧉",
-  avatarColor: "naranja",
 };
 
 /** Primer mensaje de error, o null si los datos son válidos. */
@@ -44,10 +42,6 @@ describe("esquemaCrearCuenta", () => {
     expect(error({ ...valida, pin: "1234" })).toMatch(/al menos 6/);
   });
 
-  it("solo acepta emojis y colores de la lista", () => {
-    expect(error({ ...valida, avatarEmoji: "💩" })).toMatch(/emoji/);
-    expect(error({ ...valida, avatarColor: "verde" })).toMatch(/color/);
-  });
 
   it("no acepta un nombre vacío", () => {
     expect(error({ ...valida, nombre: "   " })).toMatch(/nombre/);

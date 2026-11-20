@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
-import { AvatarDeIntegrante } from "@/components/avatar";
+import { Avatar } from "@/components/avatar";
 import { Campo, MensajeDeError } from "@/components/campo";
 import { Button } from "@/components/ui/button";
 import { llamarApi } from "@/lib/api-cliente";
@@ -16,8 +16,7 @@ import { calcularPuntosDeJuntada, type EstadoDeParticipacion } from "@/server/do
 type Integrante = {
   id: string;
   nombre: string;
-  avatarEmoji: string | null;
-  avatarColor: string | null;
+  fotoUrl: string | null;
 };
 
 type AccionDelFormulario = Accion & { puntosHoy: number };
@@ -186,10 +185,9 @@ export function FormularioJuntada({
           {integrantes.map((integrante) => (
             <li key={integrante.id} className="space-y-2 rounded-xl bg-card p-3">
               <div className="flex items-center gap-3">
-                <AvatarDeIntegrante
+                <Avatar
                   nombre={integrante.nombre}
-                  emoji={integrante.avatarEmoji}
-                  color={integrante.avatarColor}
+                  fotoUrl={integrante.fotoUrl}
                 />
                 <span className="font-heading truncate font-medium">{integrante.nombre}</span>
               </div>

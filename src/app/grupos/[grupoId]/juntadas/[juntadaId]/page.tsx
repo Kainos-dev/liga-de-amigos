@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AvatarDeIntegrante } from "@/components/avatar";
+import { Avatar } from "@/components/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { conSigno, fechaLarga } from "@/lib/fechas";
 import { esIdValido } from "@/server/api";
@@ -67,10 +67,9 @@ async function Contenido({
           {juntada.personas.map((persona) => (
             <li key={persona.integranteId} className="space-y-2 rounded-xl bg-card p-3">
               <div className="flex items-center gap-3">
-                <AvatarDeIntegrante
+                <Avatar
                   nombre={persona.nombre}
-                  emoji={persona.avatarEmoji}
-                  color={persona.avatarColor}
+                  fotoUrl={persona.fotoUrl}
                 />
                 <div className="min-w-0 flex-1">
                   <p className="font-heading truncate font-medium">{persona.nombre}</p>

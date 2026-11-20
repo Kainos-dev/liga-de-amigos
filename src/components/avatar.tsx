@@ -1,56 +1,41 @@
-// Avatares de cuentas e integrantes.
-import { COLORES_DE_AVATAR, type ColorDeAvatar } from "@/lib/avatares";
+// Avatares: la foto de perfil o, si no hay, la inicial del nombre sobre un color.
+import { colorDeAvatar, inicial } from "@/lib/avatares";
 
 const TAMANOS = {
-  chico: "size-9 text-lg",
-  mediano: "size-12 text-2xl",
+  chico: "size-9 text-base",
+  mediano: "size-12 text-xl",
   grande: "size-20 text-4xl",
 };
 
-/**
- * Avatar de un integrante: el de su cuenta, o la inicial del nombre en un
- * círculo neutro si no tiene cuenta.
- */
-export function AvatarDeIntegrante({
+export function Avatar({
   nombre,
-  emoji,
-  color,
+  fotoUrl,
   tamano = "chico",
 }: {
   nombre: string;
-  emoji: string | null;
-  color: string | null;
+  fotoUrl: string | null;
   tamano?: keyof typeof TAMANOS;
 }) {
-  if (emoji && color) return <Avatar emoji={emoji} color={color} tamano={tamano} />;
-  return (
-    <span
-      aria-hidden
-      className={`inline-flex shrink-0 items-center justify-center rounded-full bg-muted font-heading font-semibold text-muted-foreground ${TAMANOS[tamano]}`}
-    >
-      {nombre.charAt(0).toUpperCase()}
-    </span>
-  );
-}
-
-export function Avatar({
-  emoji,
-  color,
-  tamano = "mediano",
-}: {
-  emoji: string;
-  color: string;
-  tamano?: keyof typeof TAMANOS;
-}) {
-  // Si llegara un color desconocido, usamos el violeta para no romper la vista.
-  const fondo = COLORES_DE_AVATAR[color as ColorDeAvatar] ?? COLORES_DE_AVATAR.violeta;
+  if (fotoUrl) {
+    return (
+      // Imagen chica que ya viene recortada y achicada: alcanza con <img>,
+      // no hace falta el optimizador de next/image.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={fotoUrl}
+        alt=""
+        loading="lazy"
+        className={`shrink-0 rounded-full bg-muted object-cover ${TAMANOS[tamano]}`}
+      />
+    );
+  }
 
   return (
     <span
       aria-hidden
-      className={`inline-flex shrink-0 items-center justify-center rounded-full ${fondo} ${TAMANOS[tamano]}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full font-heading font-bold ${colorDeAvatar(nombre)} ${TAMANOS[tamano]}`}
     >
-      {emoji}
+      {inicial(nombre)}
     </span>
   );
 }

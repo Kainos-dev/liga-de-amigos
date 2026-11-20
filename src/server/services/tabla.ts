@@ -1,5 +1,6 @@
 import "server-only";
 import { sql } from "@/server/db";
+import { urlDeFoto } from "@/server/services/fotos";
 import { hoy } from "@/server/domain/fechas";
 import {
   armarTabla,
@@ -13,8 +14,7 @@ import { exigirIntegrante } from "@/server/services/permisos";
 import { elegirTemporada, type TemporadaElegida } from "@/server/services/temporadas";
 
 export type FilaDeLaLiga = FilaDeTabla & {
-  avatarEmoji: string | null;
-  avatarColor: string | null;
+  fotoUrl: string | null;
   activo: boolean; // false = ya no está en el grupo (sigue en la tabla por sus puntos)
   faltas: number;
   porcentajeDeAsistencia: number | null;
@@ -112,8 +112,7 @@ export async function calcularTabla(
     const suAsistencia = asistencia.find((a) => a.integranteId === fila.integranteId);
     return {
       ...fila,
-      avatarEmoji: integrante.avatarEmoji,
-      avatarColor: integrante.avatarColor,
+      fotoUrl: integrante.fotoUrl,
       activo: integrante.activo,
       faltas: suAsistencia?.falto ?? 0,
       porcentajeDeAsistencia: porcentajeDeAsistencia(suAsistencia?.fue ?? 0, suAsistencia?.falto ?? 0),
@@ -134,15 +133,14 @@ export async function calcularTabla(
 export type IntegranteDeTemporada = {
   id: string;
   nombre: string;
-  avatarEmoji: string | null;
-  avatarColor: string | null;
+  fotoUrl: string | null;
   activo: boolean;
 };
 
 /** Activos, más quienes se fueron pero tienen puntos o asistencia en la temporada. */
 export function integrantesDeLaTemporada(grupoId: string, temporadaId: string) {
   return sql<IntegranteDeTemporada[]>`
-    SELECT i.id, i.nombre, u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor",
+    SELECT i.id, i.nombre, ${urlDeFoto("u")} AS "fotoUrl",
            i.egreso_en IS NULL AS activo
     FROM integrantes i
     LEFT JOIN usuarios u ON u.id = i.usuario_id

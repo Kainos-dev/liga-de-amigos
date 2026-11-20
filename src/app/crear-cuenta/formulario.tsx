@@ -2,24 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
-import { Avatar } from "@/components/avatar";
 import { Campo, MensajeDeError } from "@/components/campo";
+import { SelectorDeFoto } from "@/components/selector-de-foto";
 import { Button } from "@/components/ui/button";
-import { llamarApi } from "@/lib/api-cliente";
-import {
-  CLAVES_DE_COLOR,
-  COLORES_DE_AVATAR,
-  type ColorDeAvatar,
-  EMOJIS_DE_AVATAR,
-} from "@/lib/avatares";
+import { llamarApi, subirFoto } from "@/lib/api-cliente";
 
 export function FormularioCrearCuenta() {
   const router = useRouter();
-  const [emoji, setEmoji] = useState<string>(EMOJIS_DE_AVATAR[0]);
-  const [color, setColor] = useState<ColorDeAvatar>("naranja");
   const [nombre, setNombre] = useState("");
+  // La foto elegida (ya achicada) y una dirección temporal para verla antes de subirla.
+  const [foto, setFoto] = useState<{ blob: Blob; url: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  function cambiarFoto(blob: Blob | null) {
+    if (foto) URL.revokeObjectURL(foto.url); // liberamos la vista previa anterior
+    setFoto(blob ? { blob, url: URL.createObjectURL(blob) } : null);
+  }
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -36,14 +35,23 @@ export function FormularioCrearCuenta() {
       nombre,
       usuario: datos.get("usuario"),
       pin: datos.get("pin"),
-      avatarEmoji: emoji,
-      avatarColor: color,
     });
-    setEnviando(false);
 
     if (!resultado.ok) {
+      setEnviando(false);
       setError(resultado.error);
       return;
+    }
+
+    // La cuenta ya existe y la sesión quedó abierta: ahora la foto, si eligió una.
+    // Si la foto falla, la cuenta igual queda creada y se puede subir desde "Mi cuenta".
+    if (foto) {
+      const subida = await subirFoto(foto.blob);
+      if (!subida.ok) {
+        router.push("/cuenta");
+        router.refresh();
+        return;
+      }
     }
     router.push("/");
     router.refresh(); // para que el inicio lea la sesión nueva
@@ -51,17 +59,6 @@ export function FormularioCrearCuenta() {
 
   return (
     <form onSubmit={enviar} className="space-y-6">
-      {/* Vista previa de cómo te van a ver los demás */}
-      <div className="flex items-center gap-4 rounded-xl bg-card p-4">
-        <Avatar emoji={emoji} color={color} tamano="grande" />
-        <div className="min-w-0">
-          <p className="font-heading truncate text-xl font-semibold">
-            {nombre.trim() || "Tu nombre"}
-          </p>
-          <p className="text-sm text-muted-foreground">Así te van a ver en los grupos</p>
-        </div>
-      </div>
-
       <Campo
         id="nombre"
         etiqueta="Nombre o apodo"
@@ -72,39 +69,20 @@ export function FormularioCrearCuenta() {
         placeholder="Tomi"
       />
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Emoji</legend>
-        <div className="grid grid-cols-8 gap-1.5">
-          {EMOJIS_DE_AVATAR.map((opcion) => (
-            <button
-              key={opcion}
-              type="button"
-              onClick={() => setEmoji(opcion)}
-              aria-pressed={emoji === opcion}
-              aria-label={`Emoji ${opcion}`}
-              className="flex aspect-square items-center justify-center rounded-lg text-2xl hover:bg-muted aria-pressed:bg-muted aria-pressed:ring-2 aria-pressed:ring-amarillo"
-            >
-              {opcion}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Color</legend>
-        <div className="flex gap-3">
-          {CLAVES_DE_COLOR.map((opcion) => (
-            <button
-              key={opcion}
-              type="button"
-              onClick={() => setColor(opcion)}
-              aria-pressed={color === opcion}
-              aria-label={`Color ${opcion}`}
-              className={`size-10 rounded-full ${COLORES_DE_AVATAR[opcion]} ring-offset-2 ring-offset-background aria-pressed:ring-2 aria-pressed:ring-amarillo`}
-            />
-          ))}
-        </div>
-      </fieldset>
+      {/* Vista previa de cómo te van a ver los demás */}
+      <div className="space-y-2 rounded-xl bg-card p-4">
+        <p className="text-sm font-medium">Foto de perfil (opcional)</p>
+        <SelectorDeFoto
+          nombre={nombre}
+          fotoUrl={foto?.url ?? null}
+          ocupado={enviando}
+          alElegir={cambiarFoto}
+          alQuitar={() => cambiarFoto(null)}
+        />
+        <p className="text-xs text-muted-foreground">
+          Sin foto se muestra la inicial de tu nombre. La podés cambiar cuando quieras.
+        </p>
+      </div>
 
       <Campo
         id="usuario"
@@ -139,7 +117,7 @@ export function FormularioCrearCuenta() {
       />
 
       <p className="text-sm text-muted-foreground">
-        Ojo: el nombre, el emoji y el color no se pueden cambiar después.
+        Ojo: el nombre no se puede cambiar después.
       </p>
 
       <MensajeDeError mensaje={error} />

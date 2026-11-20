@@ -5,6 +5,21 @@
  */
 export type Resultado<T> = { ok: true; datos: T } | { ok: false; error: string };
 
+/** Sube la foto de perfil propia (ya achicada) como imagen, no como JSON. */
+export async function subirFoto(foto: Blob): Promise<Resultado<{ fotoUrl: string }>> {
+  try {
+    const respuesta = await fetch("/api/v1/cuentas/yo/foto", {
+      method: "PUT",
+      headers: { "Content-Type": foto.type || "image/jpeg" },
+      body: foto,
+    });
+    const json = await respuesta.json();
+    return respuesta.ok ? { ok: true, datos: json } : { ok: false, error: json.error ?? "Algo salió mal" };
+  } catch {
+    return { ok: false, error: "No hay conexión. Revisá internet y probá de nuevo" };
+  }
+}
+
 export async function llamarApi<T = unknown>(
   metodo: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   ruta: string,

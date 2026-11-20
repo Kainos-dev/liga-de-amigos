@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { AvatarDeIntegrante } from "@/components/avatar";
+import { Avatar } from "@/components/avatar";
 import { conSigno } from "@/lib/fechas";
 import { ErrorDeDominio } from "@/server/domain/errores";
 import { type FilaDeLaLiga, obtenerTabla, type TablaDeLaLiga } from "@/server/services/tabla";
@@ -125,7 +125,7 @@ function FilaDeTabla({
           >
             {fila.posicion}
           </span>
-          <AvatarDeIntegrante nombre={fila.nombre} emoji={fila.avatarEmoji} color={fila.avatarColor} />
+          <Avatar nombre={fila.nombre} fotoUrl={fila.fotoUrl} />
           <span className="min-w-0 flex-1">
             <span className="font-heading block truncate font-semibold">
               {fila.nombre}

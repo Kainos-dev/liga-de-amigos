@@ -1,5 +1,6 @@
 import "server-only";
 import { sql } from "@/server/db";
+import { urlDeFoto } from "@/server/services/fotos";
 import {
   cifrarPin,
   hashDeToken,
@@ -18,8 +19,7 @@ export type Usuario = {
   id: string;
   usuario: string;
   nombre: string;
-  avatarEmoji: string;
-  avatarColor: string;
+  fotoUrl: string | null;
 };
 
 export type SesionNueva = {
@@ -35,9 +35,9 @@ export async function crearCuenta(datos: DatosCrearCuenta): Promise<SesionNueva>
 
   try {
     const [usuario] = await sql<Usuario[]>`
-      INSERT INTO usuarios (usuario, nombre, avatar_emoji, avatar_color, pin_hash)
-      VALUES (${datos.usuario}, ${datos.nombre}, ${datos.avatarEmoji}, ${datos.avatarColor}, ${pinHash})
-      RETURNING id, usuario, nombre, avatar_emoji AS "avatarEmoji", avatar_color AS "avatarColor"
+      INSERT INTO usuarios (usuario, nombre, pin_hash)
+      VALUES (${datos.usuario}, ${datos.nombre}, ${pinHash})
+      RETURNING id, usuario, nombre, NULL::text AS "fotoUrl"
     `;
     return await abrirSesion(usuario);
   } catch (error) {
@@ -50,7 +50,7 @@ export async function crearCuenta(datos: DatosCrearCuenta): Promise<SesionNueva>
 
 export async function iniciarSesion(usuario: string, pin: string): Promise<SesionNueva> {
   const [fila] = await sql<(Usuario & { pinHash: string; intentosFallidos: number; bloqueadoHasta: Date | null })[]>`
-    SELECT id, usuario, nombre, avatar_emoji AS "avatarEmoji", avatar_color AS "avatarColor",
+    SELECT id, usuario, nombre, ${urlDeFoto("usuarios")} AS "fotoUrl",
            pin_hash AS "pinHash", intentos_fallidos AS "intentosFallidos",
            bloqueado_hasta AS "bloqueadoHasta"
     FROM usuarios
@@ -86,15 +86,14 @@ export async function iniciarSesion(usuario: string, pin: string): Promise<Sesio
     id: fila.id,
     usuario: fila.usuario,
     nombre: fila.nombre,
-    avatarEmoji: fila.avatarEmoji,
-    avatarColor: fila.avatarColor,
+    fotoUrl: fila.fotoUrl,
   });
 }
 
 /** Usuario dueño de un token de sesión vigente, o null. */
 export async function usuarioDeLaSesion(token: string): Promise<Usuario | null> {
   const [usuario] = await sql<Usuario[]>`
-    SELECT u.id, u.usuario, u.nombre, u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor"
+    SELECT u.id, u.usuario, u.nombre, ${urlDeFoto("u")} AS "fotoUrl"
     FROM sesiones s
     JOIN usuarios u ON u.id = s.usuario_id
     WHERE s.token_hash = ${hashDeToken(token)} AND s.vence_en > now()

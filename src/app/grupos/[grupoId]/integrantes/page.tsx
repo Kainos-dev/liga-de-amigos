@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Avatar, AvatarDeIntegrante } from "@/components/avatar";
+import { Avatar } from "@/components/avatar";
 import { listarSolicitudes } from "@/server/services/solicitudes";
 import { accederAlGrupo, CLASE_PAGINA, SinAcceso, Volver } from "../acceso";
 import {
@@ -54,7 +54,7 @@ async function Contenido({ params }: { params: Promise<{ grupoId: string }> }) {
             {solicitudes.map((solicitud) => (
               <li key={solicitud.id} className="space-y-3 rounded-xl bg-card p-4">
                 <div className="flex items-center gap-3">
-                  <Avatar emoji={solicitud.avatarEmoji} color={solicitud.avatarColor} />
+                  <Avatar nombre={solicitud.nombre} fotoUrl={solicitud.fotoUrl} />
                   <div className="min-w-0">
                     <p className="font-heading truncate font-semibold">{solicitud.nombre}</p>
                     <p className="text-sm text-muted-foreground">@{solicitud.usuario}</p>
@@ -83,10 +83,9 @@ async function Contenido({ params }: { params: Promise<{ grupoId: string }> }) {
                 key={integrante.id}
                 className="flex flex-wrap items-center gap-3 rounded-xl bg-card p-3"
               >
-                <AvatarDeIntegrante
+                <Avatar
                   nombre={integrante.nombre}
-                  emoji={integrante.avatarEmoji}
-                  color={integrante.avatarColor}
+                  fotoUrl={integrante.fotoUrl}
                 />
                 <div className="min-w-0 flex-1">
                   <p className="font-heading truncate font-medium">

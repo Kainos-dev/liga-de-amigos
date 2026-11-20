@@ -1,5 +1,6 @@
 import "server-only";
 import { sql } from "@/server/db";
+import { urlDeFoto } from "@/server/services/fotos";
 import { ErrorDeDominio } from "@/server/domain/errores";
 import { hoy } from "@/server/domain/fechas";
 import { registrarAuditoria } from "@/server/services/auditoria";
@@ -10,8 +11,7 @@ export type SolicitudVista = {
   id: string;
   nombre: string;
   usuario: string;
-  avatarEmoji: string;
-  avatarColor: string;
+  fotoUrl: string | null;
   creadoEn: Date;
 };
 
@@ -68,7 +68,7 @@ export async function listarSolicitudes(
   await exigirAdmin(usuarioId, grupoId);
   return sql<SolicitudVista[]>`
     SELECT s.id, u.nombre, u.usuario,
-           u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor",
+           ${urlDeFoto("u")} AS "fotoUrl",
            s.creado_en AS "creadoEn"
     FROM solicitudes_ingreso s
     JOIN usuarios u ON u.id = s.usuario_id

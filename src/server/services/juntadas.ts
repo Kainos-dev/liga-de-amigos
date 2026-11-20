@@ -1,6 +1,7 @@
 import "server-only";
 import type { TransactionSql } from "postgres";
 import { sql } from "@/server/db";
+import { urlDeFoto } from "@/server/services/fotos";
 import { ErrorDeDominio, ErrorSinPermiso } from "@/server/domain/errores";
 import type { Rol } from "@/server/domain/grupos";
 import {
@@ -27,8 +28,7 @@ export type ResumenDeJuntada = {
 export type PersonaEnJuntada = {
   integranteId: string;
   nombre: string;
-  avatarEmoji: string | null;
-  avatarColor: string | null;
+  fotoUrl: string | null;
   estado: EstadoDeParticipacion;
   puntos: number;
   motivos: { motivo: string; puntos: number }[];
@@ -53,8 +53,7 @@ export type DetalleDeJuntada = {
 export type IntegranteParaFormulario = {
   id: string;
   nombre: string;
-  avatarEmoji: string | null;
-  avatarColor: string | null;
+  fotoUrl: string | null;
 };
 
 // ─── Escrituras ──────────────────────────────────────────────────────────────
@@ -273,7 +272,7 @@ export async function obtenerJuntada(
   const ids = [...new Set([...participaciones, ...acciones].map((f) => f.integranteId))];
   const integrantes = ids.length
     ? await sql<IntegranteParaFormulario[]>`
-        SELECT i.id, i.nombre, u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor"
+        SELECT i.id, i.nombre, ${urlDeFoto("u")} AS "fotoUrl"
         FROM integrantes i LEFT JOIN usuarios u ON u.id = i.usuario_id
         WHERE i.id IN ${sql(ids)}
       `
@@ -284,8 +283,7 @@ export async function obtenerJuntada(
     return {
       integranteId: integrante.id,
       nombre: integrante.nombre,
-      avatarEmoji: integrante.avatarEmoji,
-      avatarColor: integrante.avatarColor,
+      fotoUrl: integrante.fotoUrl,
       estado: participaciones.find((p) => p.integranteId === integrante.id)?.estado ?? "sin_dato",
       puntos: suyos.reduce((total, r) => total + r.puntos, 0),
       motivos: suyos.map((r) => ({ motivo: r.motivo, puntos: r.puntos })),
@@ -314,7 +312,7 @@ export async function datosParaFormulario(
   const acciones = await accionesParaFormulario(usuarioId, grupoId); // verifica membresía
 
   const integrantes = await sql<IntegranteParaFormulario[]>`
-    SELECT i.id, i.nombre, u.avatar_emoji AS "avatarEmoji", u.avatar_color AS "avatarColor"
+    SELECT i.id, i.nombre, ${urlDeFoto("u")} AS "fotoUrl"
     FROM integrantes i LEFT JOIN usuarios u ON u.id = i.usuario_id
     WHERE i.grupo_id = ${grupoId}
       AND (

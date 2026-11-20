@@ -20,7 +20,7 @@ import { elegirTemporada } from "@/server/services/temporadas";
 /** Cómo mostrar a cada persona que aparece en un resumen. */
 export type Personas = Record<
   string,
-  { nombre: string; avatarEmoji: string | null; avatarColor: string | null }
+  { nombre: string; fotoUrl: string | null }
 >;
 
 /** Carga todo lo de una temporada que necesitan los resúmenes. */
@@ -61,7 +61,7 @@ async function cargarDatos(
     personas: Object.fromEntries(
       integrantes.map((i) => [
         i.id,
-        { nombre: i.nombre, avatarEmoji: i.avatarEmoji, avatarColor: i.avatarColor },
+        { nombre: i.nombre, fotoUrl: i.fotoUrl },
       ]),
     ),
   };
@@ -200,7 +200,7 @@ function personasDeLaTabla(tabla: TablaCalculada): Personas {
   return Object.fromEntries(
     tabla.filas.map((f) => [
       f.integranteId,
-      { nombre: f.nombre, avatarEmoji: f.avatarEmoji, avatarColor: f.avatarColor },
+      { nombre: f.nombre, fotoUrl: f.fotoUrl ?? null },
     ]),
   );
 }

@@ -5,7 +5,6 @@
  * route handler) para que la futura app móvil y los tests usen las mismas reglas.
  */
 import { z } from "zod";
-import { CLAVES_DE_COLOR, EMOJIS_DE_AVATAR } from "@/lib/avatares";
 
 const usuario = z
   .string()
@@ -29,8 +28,6 @@ export const esquemaCrearCuenta = z.object({
     .trim()
     .min(1, { error: "Poné un nombre o apodo" })
     .max(30, { error: "El nombre puede tener hasta 30 caracteres" }),
-  avatarEmoji: z.enum(EMOJIS_DE_AVATAR, { error: "Elegí un emoji de la lista" }),
-  avatarColor: z.enum(CLAVES_DE_COLOR, { error: "Elegí un color de la lista" }),
 });
 
 export type DatosCrearCuenta = z.infer<typeof esquemaCrearCuenta>;
