@@ -6,7 +6,7 @@
 export type Resultado<T> = { ok: true; datos: T } | { ok: false; error: string };
 
 export async function llamarApi<T = unknown>(
-  metodo: "GET" | "POST" | "PATCH" | "DELETE",
+  metodo: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   ruta: string,
   cuerpo?: unknown,
 ): Promise<Resultado<T>> {

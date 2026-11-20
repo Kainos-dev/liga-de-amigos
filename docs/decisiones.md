@@ -98,12 +98,24 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 - **Fechas**: "hoy" se calcula con la hora de Argentina (`src/server/domain/fechas.ts`), porque el servidor corre en UTC.
 - Código: `src/server/domain/grupos.ts`, `src/server/services/{grupos,solicitudes,integrantes,permisos,auditoria}.ts`, API en `src/app/api/v1/grupos` y `src/app/api/v1/solicitudes`.
 
+## Juntadas y puntos sueltos (confirmado)
+
+- **Registrar**: cualquier integrante. Fecha (no futura), título, asistencia de cada uno (fue / faltó / no invitado / sin dato), acciones marcadas, invitados de afuera y notas. Tiene que haber al menos una persona que fue.
+- **Editar, cancelar o eliminar**: cualquier integrante dentro de las 48 h desde que se cargó; después, solo los administradores. Editar reemplaza todo el contenido y recalcula los puntos en una transacción.
+- **Cancelada**: queda en el historial pero no suma ni resta. Se puede reactivar.
+- **Temporada**: cada carga va a la temporada del año de su fecha (se crea sola si no existe). No se puede cargar ni editar en una temporada cerrada o pasado el período de gracia.
+- **Integrantes**: se puede anotar a cualquiera activo del grupo, aunque se haya sumado después de la fecha (para cargar juntadas viejas). Al editar se mantiene a quien ya estaba aunque se haya ido.
+- **Acciones archivadas**: no se pueden usar en cargas nuevas; al editar se mantienen si ya estaban.
+- **Puntos sueltos**: fuera de una juntada, con fecha, persona, acción y nota. Asistir y Faltar no se pueden usar sueltas. Se borran (mismas reglas de 48 h).
+- **Vista previa**: el formulario usa el mismo motor de puntos (`src/server/domain/puntos.ts`, código puro) para mostrar cómo quedan los puntos antes de guardar; el servidor recalcula todo igual.
+- Código: `src/server/domain/juntadas.ts`, `src/server/services/{juntadas,acciones-sueltas,acciones,temporadas}.ts`, API en `src/app/api/v1/grupos/[grupoId]/{juntadas,acciones-sueltas,acciones}`.
+
 ## Plan de desarrollo por etapas
 
 1. **Motor de puntos y esquema de base** — hecho: dominio con tests y primera migración.
 2. **Cuentas** — hecho: usuario + PIN sin email, sesiones, crear cuenta, entrar, salir y eliminar cuenta.
 3. **Grupos e integrantes** — hecho: crear grupo, código para unirse, solicitudes que acepta un administrador, roles e integrantes sin cuenta.
-4. **Juntadas y acciones sueltas**: registrar y editar, con recálculo de puntos e historial.
+4. **Juntadas y acciones sueltas** — hecho: registrar, editar, cancelar y eliminar juntadas con recálculo de puntos; puntos sueltos.
 5. **Tabla de la liga**: posiciones, desglose y cambios de posición.
 6. **Acciones configurables**: editar puntos y agregar o archivar acciones.
 7. **Resúmenes y temporadas**: resumen mensual y anual, cierre de temporada.
