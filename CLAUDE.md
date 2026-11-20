@@ -37,6 +37,6 @@ pnpm db:status
 
 ## Estado actual
 
-Etapa 1 lista: motor de puntos en `src/server/domain/` (con tests) y primera migración en `db/migrations/` (pendiente de aplicar en Neon). Plan completo por etapas en `docs/decisiones.md`.
+Etapa 1 lista: motor de puntos en `src/server/domain/` (con tests) y primera migración en `db/migrations/` (aplicada en Neon). Plan completo por etapas en `docs/decisiones.md`.
 
 Próximo paso: etapa 2, login con Better Auth.
