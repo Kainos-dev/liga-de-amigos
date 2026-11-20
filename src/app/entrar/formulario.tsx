@@ -18,7 +18,7 @@ export function FormularioEntrar() {
     setEnviando(true);
     setError(null);
     const resultado = await llamarApi("POST", "/sesiones", {
-      usuario: datos.get("usuario"),
+      nombre: datos.get("nombre"),
       pin: datos.get("pin"),
     });
     setEnviando(false);
@@ -34,11 +34,11 @@ export function FormularioEntrar() {
   return (
     <form onSubmit={enviar} className="space-y-5">
       <Campo
-        id="usuario"
-        name="usuario"
-        etiqueta="Usuario"
+        id="nombre"
+        name="nombre"
+        etiqueta="Nombre o apodo"
+        ayuda="El mismo con el que creaste la cuenta."
         autoComplete="username"
-        autoCapitalize="none"
         required
       />
       <Campo

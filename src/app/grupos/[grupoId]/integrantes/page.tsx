@@ -57,7 +57,6 @@ async function Contenido({ params }: { params: Promise<{ grupoId: string }> }) {
                   <Avatar nombre={solicitud.nombre} fotoUrl={solicitud.fotoUrl} />
                   <div className="min-w-0">
                     <p className="font-heading truncate font-semibold">{solicitud.nombre}</p>
-                    <p className="text-sm text-muted-foreground">@{solicitud.usuario}</p>
                   </div>
                 </div>
                 <ResponderSolicitud

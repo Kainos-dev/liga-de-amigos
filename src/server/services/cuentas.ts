@@ -17,8 +17,7 @@ import { ErrorDeDominio, ErrorNoAutenticado } from "@/server/domain/errores";
 /** Lo que se muestra de un usuario. Nunca incluye el hash del PIN. */
 export type Usuario = {
   id: string;
-  usuario: string;
-  nombre: string;
+  nombre: string; // también es con lo que entra (junto con el PIN)
   fotoUrl: string | null;
 };
 
@@ -28,33 +27,37 @@ export type SesionNueva = {
   usuario: Usuario;
 };
 
-const MENSAJE_CREDENCIALES = "Usuario o PIN incorrectos";
+const MENSAJE_CREDENCIALES = "Nombre o PIN incorrectos";
 
 export async function crearCuenta(datos: DatosCrearCuenta): Promise<SesionNueva> {
   const pinHash = await cifrarPin(datos.pin);
 
   try {
     const [usuario] = await sql<Usuario[]>`
-      INSERT INTO usuarios (usuario, nombre, pin_hash)
-      VALUES (${datos.usuario}, ${datos.nombre}, ${pinHash})
-      RETURNING id, usuario, nombre, NULL::text AS "fotoUrl"
+      INSERT INTO usuarios (nombre, pin_hash)
+      VALUES (${datos.nombre}, ${pinHash})
+      RETURNING id, nombre, NULL::text AS "fotoUrl"
     `;
     return await abrirSesion(usuario);
   } catch (error) {
-    if (esViolacionDeUnicidad(error, "usuarios_usuario_unico")) {
-      throw new ErrorDeDominio("Ese usuario ya existe, probá con otro");
+    if (esViolacionDeUnicidad(error, "usuarios_nombre_unico")) {
+      throw new ErrorDeDominio(
+        "Ya hay alguien con ese nombre. Probá agregándole algo, por ejemplo una inicial (Tomi R.)",
+      );
     }
     throw error;
   }
 }
 
-export async function iniciarSesion(usuario: string, pin: string): Promise<SesionNueva> {
+export async function iniciarSesion(nombre: string, pin: string): Promise<SesionNueva> {
   const [fila] = await sql<(Usuario & { pinHash: string; intentosFallidos: number; bloqueadoHasta: Date | null })[]>`
-    SELECT id, usuario, nombre, ${urlDeFoto("usuarios")} AS "fotoUrl",
+    SELECT id, nombre, ${urlDeFoto("usuarios")} AS "fotoUrl",
            pin_hash AS "pinHash", intentos_fallidos AS "intentosFallidos",
            bloqueado_hasta AS "bloqueadoHasta"
     FROM usuarios
-    WHERE lower(usuario) = lower(${usuario})
+    -- Los nombres se guardan normalizados y el que llega también (ver
+    -- normalizarNombre): alcanza con no distinguir mayúsculas.
+    WHERE lower(nombre) = lower(${nombre})
   `;
 
   if (!fila) {
@@ -84,7 +87,6 @@ export async function iniciarSesion(usuario: string, pin: string): Promise<Sesio
 
   return abrirSesion({
     id: fila.id,
-    usuario: fila.usuario,
     nombre: fila.nombre,
     fotoUrl: fila.fotoUrl,
   });
@@ -93,7 +95,7 @@ export async function iniciarSesion(usuario: string, pin: string): Promise<Sesio
 /** Usuario dueño de un token de sesión vigente, o null. */
 export async function usuarioDeLaSesion(token: string): Promise<Usuario | null> {
   const [usuario] = await sql<Usuario[]>`
-    SELECT u.id, u.usuario, u.nombre, ${urlDeFoto("u")} AS "fotoUrl"
+    SELECT u.id, u.nombre, ${urlDeFoto("u")} AS "fotoUrl"
     FROM sesiones s
     JOIN usuarios u ON u.id = s.usuario_id
     WHERE s.token_hash = ${hashDeToken(token)} AND s.vence_en > now()

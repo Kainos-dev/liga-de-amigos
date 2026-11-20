@@ -2,15 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   despuesDeUnIntentoFallido,
   esquemaCrearCuenta,
+  esquemaIniciarSesion,
   MAX_INTENTOS_FALLIDOS,
   MINUTOS_DE_BLOQUEO,
+  normalizarNombre,
 } from "./cuentas";
 
-const valida = {
-  usuario: "tomi_el.tano",
-  pin: "123456",
-  nombre: "Tomi",
-};
+const valida = { nombre: "El Tano", pin: "123456" };
 
 /** Primer mensaje de error, o null si los datos son válidos. */
 function error(datos: Record<string, unknown>) {
@@ -19,32 +17,29 @@ function error(datos: Record<string, unknown>) {
 }
 
 describe("esquemaCrearCuenta", () => {
-  it("acepta una cuenta válida", () => {
+  it("acepta un nombre con espacios, tildes y lo que quieras", () => {
     expect(error(valida)).toBeNull();
+    expect(error({ ...valida, nombre: "Tomás 🔥" })).toBeNull();
   });
 
-  it("recorta espacios del usuario y el nombre", () => {
-    const resultado = esquemaCrearCuenta.parse({ ...valida, usuario: " tomi ", nombre: " Tomi " });
-    expect(resultado.usuario).toBe("tomi");
-    expect(resultado.nombre).toBe("Tomi");
+  it("acomoda los espacios del nombre", () => {
+    expect(esquemaCrearCuenta.parse({ ...valida, nombre: "  El   Tano " }).nombre).toBe("El Tano");
+    expect(normalizarNombre("\tJuli\n")).toBe("Juli");
   });
 
-  it("rechaza usuarios con espacios o símbolos", () => {
-    expect(error({ ...valida, usuario: "tomi tano" })).toMatch(/solo puede tener/);
-    expect(error({ ...valida, usuario: "tomi@" })).toMatch(/solo puede tener/);
-  });
-
-  it("rechaza usuarios muy cortos", () => {
-    expect(error({ ...valida, usuario: "to" })).toMatch(/al menos 3/);
+  it("pide al menos 2 caracteres y como mucho 30", () => {
+    expect(error({ ...valida, nombre: " J " })).toMatch(/al menos 2/);
+    expect(error({ ...valida, nombre: "x".repeat(31) })).toMatch(/hasta 30/);
   });
 
   it("pide un PIN de al menos 6 caracteres", () => {
     expect(error({ ...valida, pin: "1234" })).toMatch(/al menos 6/);
   });
+});
 
-
-  it("no acepta un nombre vacío", () => {
-    expect(error({ ...valida, nombre: "   " })).toMatch(/nombre/);
+describe("esquemaIniciarSesion", () => {
+  it("normaliza el nombre igual que al crear la cuenta", () => {
+    expect(esquemaIniciarSesion.parse({ nombre: " el  tano ", pin: "x" }).nombre).toBe("el tano");
   });
 });
 

@@ -80,7 +80,7 @@ Lista por defecto (`ACCIONES_POR_DEFECTO` en `src/server/domain/acciones.ts`):
 
 ## Cuentas (confirmado)
 
-- **Sin email ni verificación**: la cuenta es un nombre de usuario único (sin distinguir mayúsculas) + un PIN de al menos 6 caracteres. Con eso se entra desde cualquier dispositivo.
+- **Sin email ni verificación**: se entra con el **nombre o apodo + PIN** (al menos 6 caracteres), desde cualquier dispositivo. No hay un "usuario" aparte: el nombre es único en toda la app, sin distinguir mayúsculas ni espacios de más ("Tomi" y " tomi " son el mismo). Si ya existe, hay que agregarle algo ("Tomi R.").
 - **Nombre fijo**: el nombre o apodo no se puede cambiar (solo eliminar la cuenta y crear otra) y es el mismo en todos los grupos. Sin edad.
 - **Foto de perfil**: opcional, se elige al crear la cuenta y se puede cambiar o sacar desde "Mi cuenta". El navegador la achica a 256x256 JPEG (~20 KB, `src/lib/achicar-imagen.ts`) y se guarda en `usuarios.foto` (máx. 300 KB, el servidor revisa que sea una imagen real). Se sirve en `/api/v1/usuarios/[id]/foto?v=...` solo a quien comparte un grupo con esa persona, con caché del navegador. Sin foto: la inicial del nombre sobre un color de la paleta calculado a partir del nombre (`src/lib/avatares.ts`), siempre el mismo para cada persona.
 - **Seguridad**: el PIN se guarda con scrypt; la sesión es un token aleatorio en una cookie httpOnly y en la base solo se guarda su hash. Tras 5 PIN incorrectos la cuenta se bloquea 15 minutos. La API también acepta `Authorization: Bearer <token>` para la futura app móvil.

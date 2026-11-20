@@ -3,10 +3,10 @@ import { esquemaIniciarSesion } from "@/server/domain/cuentas";
 import { cerrarSesion, iniciarSesion } from "@/server/services/cuentas";
 import { borrarCookieDeSesion, guardarCookieDeSesion, tokenDeLaPeticion } from "@/server/sesion";
 
-/** Entrar con usuario y PIN. */
+/** Entrar con el nombre o apodo y el PIN. */
 export const POST = manejar(async (request) => {
-  const { usuario, pin } = await leerJson(request, esquemaIniciarSesion);
-  const sesion = await iniciarSesion(usuario, pin);
+  const { nombre, pin } = await leerJson(request, esquemaIniciarSesion);
+  const sesion = await iniciarSesion(nombre, pin);
   await guardarCookieDeSesion(sesion.token, sesion.venceEn);
   return Response.json({ usuario: sesion.usuario });
 });

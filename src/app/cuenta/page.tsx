@@ -32,7 +32,6 @@ async function DatosDeLaCuenta() {
       <div className="space-y-4 rounded-xl bg-card p-4">
         <div className="min-w-0">
           <p className="font-heading truncate text-xl font-semibold">{usuario.nombre}</p>
-          <p className="text-sm text-muted-foreground">@{usuario.usuario}</p>
         </div>
         <CambiarFoto nombre={usuario.nombre} fotoUrl={usuario.fotoUrl} />
       </div>

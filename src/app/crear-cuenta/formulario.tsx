@@ -33,7 +33,6 @@ export function FormularioCrearCuenta() {
     setError(null);
     const resultado = await llamarApi("POST", "/cuentas", {
       nombre,
-      usuario: datos.get("usuario"),
       pin: datos.get("pin"),
     });
 
@@ -62,7 +61,8 @@ export function FormularioCrearCuenta() {
       <Campo
         id="nombre"
         etiqueta="Nombre o apodo"
-        ayuda="Es como te van a ver tus amigos en los grupos."
+        ayuda="Es como te ven tus amigos y lo que vas a usar para entrar, junto con el PIN."
+        autoComplete="username"
         maxLength={30}
         required
         value={nombre}
@@ -82,18 +82,6 @@ export function FormularioCrearCuenta() {
         />
       </div>
 
-      <Campo
-        id="usuario"
-        name="usuario"
-        etiqueta="Usuario para entrar"
-        ayuda="Lo usás para entrar a la app junto con el PIN. Sin espacios: letras, números, punto o guion bajo."
-        autoComplete="username"
-        autoCapitalize="none"
-        minLength={3}
-        maxLength={20}
-        required
-        placeholder="tomi_el_tano"
-      />
       <Campo
         id="pin"
         name="pin"

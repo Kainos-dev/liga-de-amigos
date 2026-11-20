@@ -10,7 +10,6 @@ import { exigirAdmin } from "@/server/services/permisos";
 export type SolicitudVista = {
   id: string;
   nombre: string;
-  usuario: string;
   fotoUrl: string | null;
   creadoEn: Date;
 };
@@ -67,7 +66,7 @@ export async function listarSolicitudes(
 ): Promise<SolicitudVista[]> {
   await exigirAdmin(usuarioId, grupoId);
   return sql<SolicitudVista[]>`
-    SELECT s.id, u.nombre, u.usuario,
+    SELECT s.id, u.nombre,
            ${urlDeFoto("u")} AS "fotoUrl",
            s.creado_en AS "creadoEn"
     FROM solicitudes_ingreso s
